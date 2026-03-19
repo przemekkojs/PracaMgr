@@ -11,9 +11,10 @@ public:
 	samplesModule(std::shared_ptr<voices> voiceManager);
 	void play(const noteSignal& signal, audioSignal& output) override;
 
-	const std::map<std::pair<int, int>, std::string>& getSamples() const { return this->samples; }
+	const std::map<std::pair<int, int>, SampleSet>& getSamples() const { return this->samples; }
 private:
-	std::map<std::pair<int, int>, std::string> samples;
+	std::map<std::pair<int, int>, SampleSet>;
+	ma_engine engine;
 };
 
 struct SampleSet {
