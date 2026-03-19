@@ -1,5 +1,7 @@
 #include "../h/samplesModule.h"
 
-void samplesModule::play(const noteSignal& signal, audioSignal& output) {
+#include <iostream>
 
+void samplesModule::play(const noteSignal& signal, audioSignal& output) {
+	std::cout << "Samples signal" << std::endl;
 }

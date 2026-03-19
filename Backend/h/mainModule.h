@@ -11,6 +11,10 @@ public:
 
 	void play(noteSignal& MIDISignal);
 
+	void setSamplesActive(bool value) { this->samplesActive = value; }
+	void setSynthActive(bool value) { this->synthActive = value; }
+	void setModelActive(bool value) { this->modelActive = value; }
+
 private:
 	std::shared_ptr<voices> voiceManager;
 	samplesModule samples;

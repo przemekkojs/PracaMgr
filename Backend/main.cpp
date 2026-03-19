@@ -12,6 +12,7 @@
 int main()
 {
 	mainModule instrument;
+
 	RtMidiIn midiIn;
 
 	unsigned int ports = midiIn.getPortCount();
@@ -29,20 +30,22 @@ int main()
 
 	midiIn.openPort(portIndex);
 
+	instrument.setModelActive(true);
+	instrument.setSamplesActive(true);
+	instrument.setSynthActive(true);
+
 	while (true) {
 		std::vector<unsigned char> message;
 		double timestamp = midiIn.getMessage(&message);
 
-		noteSignal MIDISignal = message.size() < 3 ?
-			noteSignal(128, 0, false) :
-			noteSignal(message[1], message[2], message[0] == 0x08);
+		if (message.size() >= 3) {
+			unsigned char note = message[1];
+			unsigned char channel = message[0] & 0x0F;
+			unsigned char on = (message[0] & 0xF0) == 0x90;
+			noteSignal MIDISignal = noteSignal(note, channel, on);
 
-		if (MIDISignal.note > 127)
-			continue;
-
-		std::cout << (int)MIDISignal.note << " " 
-				  << (int)MIDISignal.channel << " "
-				  << (int)MIDISignal.on << std::endl;
+			instrument.play(MIDISignal);
+		}				
 	}	
 
 	return 0;

@@ -1,5 +1,7 @@
 #include "../h/mainModule.h"
 
+#include <iostream>
+
 mainModule::mainModule() : samples(this->voiceManager), synth(this->voiceManager), model(this->voiceManager) {
 	this->voiceManager = std::make_shared<voices>();
 
@@ -9,6 +11,8 @@ mainModule::mainModule() : samples(this->voiceManager), synth(this->voiceManager
 }
 
 void mainModule::play(noteSignal& MIDISignal) {
+	std::cout << MIDISignal.toString() << std::endl;
+
 	audioSignal synthSignal;
 	audioSignal modelSignal;
 	audioSignal samplesSignal;

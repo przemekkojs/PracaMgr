@@ -14,8 +14,10 @@ struct noteSignal {
 		return note == other.note && channel == other.channel && on == other.on;
 	}
 
-	std::string toString() {
-
+	std::string toString() const {
+		return "note=" + std::to_string(note) +
+			" channel=" + std::to_string(channel) +
+			" state=" + (on ? "ON" : "OFF");
 	}
 };
 
@@ -31,8 +33,10 @@ struct ccSignal {
 		return cc == other.cc && channel == other.channel && value == other.value;
 	}
 
-	std::string toString() {
-
+	std::string toString() const {
+		return "cc=" + std::to_string(cc) +
+			" channel=" + std::to_string(channel) +
+			" value=" + std::to_string(value);
 	}
 };
 
@@ -41,3 +45,4 @@ struct audioSignal {
 };
 
 const audioSignal EMPTY_AUDIO_SIGNAL = audioSignal();
+const noteSignal EMPTY_NOTE_SIGNAL = noteSignal(128, 0, false);

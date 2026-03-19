@@ -1,5 +1,7 @@
 #include "../h/modelModule.h"
 
-void modelModule::play(const noteSignal& signal, audioSignal& output) {
+#include <iostream>
 
+void modelModule::play(const noteSignal& signal, audioSignal& output) {
+	std::cout << "Model signal" << std::endl;
 }
