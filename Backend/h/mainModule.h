@@ -16,4 +16,8 @@ private:
 	samplesModule samples;
 	synthModule synth;
 	modelModule model;
+
+	bool samplesActive;
+	bool synthActive;
+	bool modelActive;
 };

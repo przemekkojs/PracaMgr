@@ -2,6 +2,8 @@
 
 #include <string>
 
+const audioSignal EMPTY_AUDIO_SIGNAL;
+
 struct noteSignal {
 	unsigned char note;
 	unsigned char channel;
