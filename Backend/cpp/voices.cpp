@@ -10,10 +10,10 @@ std::string voice::getPath() const {
 	return VOICES_SAMPLES_PATH + this->name + "/";
 }
 
-std::vector<std::string> voice::getSamplesPath(int note) {
-	std::string attackSample = this->getPath() + (char)note + ATTACK_POSTFIX + SAMPLE_FORMAT;
-	std::string mainSample = this->getPath() + (char)note + SAMPLE_FORMAT;
-	std::string releaseSample = this->getPath() + (char)note + RELEASE_POSTFIX + SAMPLE_FORMAT;
+std::vector<std::string> voice::getSamplesPath(int note) const {
+	std::string attackSample = this->getPath() + std::to_string(note) + ATTACK_POSTFIX + SAMPLE_FORMAT;
+	std::string mainSample = this->getPath() + std::to_string(note) + SAMPLE_FORMAT;
+	std::string releaseSample = this->getPath() + std::to_string(note) + RELEASE_POSTFIX + SAMPLE_FORMAT;
 
 	std::vector<std::string> result({ attackSample, mainSample, releaseSample });
 	return result;
@@ -21,14 +21,31 @@ std::vector<std::string> voice::getSamplesPath(int note) {
 
 
 voices::voices() : container() {
+	std::cout << "Voices manager init" << std::endl;
 	this->loadVoices();
 }
 
 void voices::loadVoices() {
-	// Tutaj bêdzie ³adowanie plików .wav do pamiêci
-	// 1. Przeczytanie pliku instrument z local/samples
-	// 2. Dotarcie do folderów
-	// 3. Za³adowanie próbek attack, duration i release
+	std::ifstream file(INSTRUMENT_PATH);
+	std::string line;
+
+	while (std::getline(file, line)) {
+		std::stringstream ss(line);
+		std::string cell;
+		std::vector<std::string> row;
+
+		while (std::getline(ss, cell, ',')) {
+			row.push_back(cell);
+		}
+
+		int id = std::stoi(row[0]);
+		std::string name = row[1];
+
+		std::transform(name.begin(), name.end(), name.begin(), ::tolower);
+		std::replace(name.begin(), name.end(), ' ', '-');
+		voice v = voice(name, id, true); // TODO: Zmieniæ na false
+		this->container.push_back(v);
+	}
 }
 
 bool voices::setActive(int id, bool value) {

@@ -4,7 +4,13 @@
 #include <vector>
 #include <algorithm>
 
-const std::string VOICES_SAMPLES_PATH = "local/samples/";
+#include <iostream>
+#include <fstream>
+#include <sstream>
+#include <vector>
+
+const std::string VOICES_SAMPLES_PATH = "./local/samples/";
+const std::string INSTRUMENT_PATH = "./local/samples/instrument";
 const std::string SAMPLE_FORMAT = ".wav";
 
 const std::string RELEASE_POSTFIX = "_release";
@@ -12,15 +18,16 @@ const std::string ATTACK_POSTFIX = "_attack";
 
 class voice {
 public:
-	voice(std::string name, int id, bool active=false);
+	voice(std::string name, int id, bool active=false);	
 
-	std::string getName() { return this->name; }
-	std::string getPath() const;
-	std::vector<std::string> getSamplesPath(int note);
-	int getId() { return this->id; }
-	bool isActive() { return this->active; }
+	int getId() const { return this->id; }
+	bool isActive() const { return this->active; }
+	std::string getName() const { return this->name; }
 
 	void setActive(bool value) { this->active = value; }
+
+	std::string getPath() const;
+	std::vector<std::string> getSamplesPath(int note) const;
 
 private:
 	std::string name;
@@ -34,6 +41,7 @@ public:
 	bool setActive(int id, bool value);
 	std::vector<std::string> getActiveSamplesPaths();
 	std::vector<voice> getActiveVoices();
+	const std::vector<voice>& getVoices() const { return this->container; }
 
 private:
 	void loadVoices();

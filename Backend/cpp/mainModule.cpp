@@ -2,12 +2,16 @@
 
 #include <iostream>
 
-mainModule::mainModule() : samples(this->voiceManager), synth(this->voiceManager), model(this->voiceManager) {
-	this->voiceManager = std::make_shared<voices>();
-
-	this->samplesActive = false;
-	this->modelActive = false;
-	this->synthActive = false;
+mainModule::mainModule()
+	: voiceManager(std::make_shared<voices>()),
+	samples(voiceManager),
+	synth(voiceManager),
+	model(voiceManager),
+	samplesActive(false),
+	synthActive(false),
+	modelActive(false)
+{
+	std::cout << "Main module init" << std::endl;
 }
 
 void mainModule::play(noteSignal& MIDISignal) {

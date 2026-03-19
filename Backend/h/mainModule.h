@@ -11,9 +11,18 @@ public:
 
 	void play(noteSignal& MIDISignal);
 
+	std::shared_ptr<voices> getVoicesManager() const { return this->voiceManager; }
+	samplesModule getSamplesModule() const { return this->samples; }
+	synthModule getSynthModule() const { return this->synth; }
+	modelModule getModelModule() const { return this->model; }
+
 	void setSamplesActive(bool value) { this->samplesActive = value; }
 	void setSynthActive(bool value) { this->synthActive = value; }
 	void setModelActive(bool value) { this->modelActive = value; }
+
+	bool getSamplesActive() { return samplesActive; }
+	bool getSynthActive() { return synthActive; }
+	bool getModelActive() { return modelActive; }
 
 private:
 	std::shared_ptr<voices> voiceManager;

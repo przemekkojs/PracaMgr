@@ -12,7 +12,6 @@
 int main()
 {
 	mainModule instrument;
-
 	RtMidiIn midiIn;
 
 	unsigned int ports = midiIn.getPortCount();
