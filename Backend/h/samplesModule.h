@@ -9,11 +9,12 @@
 class samplesModule : public module {
 public:
 	samplesModule(std::shared_ptr<voices> voiceManager);
+	~samplesModule();
 	void play(const noteSignal& signal, audioSignal& output) override;
 
 	const std::map<std::pair<int, int>, SampleSet>& getSamples() const { return this->samples; }
 private:
-	std::map<std::pair<int, int>, SampleSet>;
+	std::map<std::pair<int, int>, SampleSet> samples;
 	ma_engine engine;
 };
 

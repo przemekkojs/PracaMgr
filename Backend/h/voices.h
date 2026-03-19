@@ -16,6 +16,9 @@ const std::string SAMPLE_FORMAT = ".wav";
 const std::string RELEASE_POSTFIX = "_release";
 const std::string ATTACK_POSTFIX = "_attack";
 
+const int LOWEST_NOTE = 48;
+const int NUMBER_OF_NOTES = 24;
+
 class voice {
 public:
 	voice(std::string name, int id, bool active=false);	
