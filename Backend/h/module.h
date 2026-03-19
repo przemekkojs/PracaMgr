@@ -7,10 +7,11 @@
 
 class module {
 public:
-	module(std::shared_ptr<voices> voiceManager);
+	explicit module(std::shared_ptr<voices> voiceManager);
+	virtual ~module() = default;
 
-	virtual audioSignal& play(noteSignal& signal) = 0;
+	virtual void play(const noteSignal& signal, audioSignal& output) = 0;
 
-private:
+protected:
 	std::shared_ptr<voices> voiceManager;
 };

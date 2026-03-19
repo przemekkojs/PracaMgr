@@ -33,7 +33,7 @@ public:
 	voices();
 	bool setActive(int id, bool value);
 	std::vector<std::string> getActiveSamplesPaths();
-	std::vector<voice&> getActiveVoices();
+	std::vector<voice> getActiveVoices();
 
 private:
 	void loadVoices();

@@ -9,7 +9,7 @@ class mainModule {
 public:
 	mainModule();
 
-	void play(noteSignal& signal);
+	void play(noteSignal& MIDISignal);
 
 private:
 	std::shared_ptr<voices> voiceManager;

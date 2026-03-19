@@ -8,10 +8,19 @@ mainModule::mainModule() : samples(this->voiceManager), synth(this->voiceManager
 	this->synthActive = false;
 }
 
-void mainModule::play(noteSignal& signal) {
-	audioSignal synthSignal = synthActive ? this->synth.play(signal) : EMPTY_AUDIO_SIGNAL;
-	audioSignal modelSignal = modelActive ? this->model.play(signal) : EMPTY_AUDIO_SIGNAL;
-	audioSignal samplesSignal = samplesActive ? this->samples.play(signal) : EMPTY_AUDIO_SIGNAL;
+void mainModule::play(noteSignal& MIDISignal) {
+	audioSignal synthSignal;
+	audioSignal modelSignal;
+	audioSignal samplesSignal;
+
+	if (this->synthActive)
+		this->synth.play(MIDISignal, synthSignal);
+
+	if (this->modelActive)
+		this->model.play(MIDISignal, modelSignal);
+
+	if (this->samplesActive)
+		this->samples.play(MIDISignal, samplesSignal);
 
 	// Tutaj jakoœ ten sygna³ trzeba bêdzie odtwarzaæ
 }

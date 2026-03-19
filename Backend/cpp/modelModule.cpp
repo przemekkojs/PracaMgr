@@ -1,7 +1,5 @@
 #include "../h/modelModule.h"
 
-modelModule::modelModule(std::shared_ptr<voices> voiceManager) : module(voiceManager) { }
+void modelModule::play(const noteSignal& signal, audioSignal& output) {
 
-audioSignal& modelModule::play(noteSignal& signal) {
-	return EMPTY_AUDIO_SIGNAL;
 }

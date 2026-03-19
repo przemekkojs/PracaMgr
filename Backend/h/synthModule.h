@@ -2,9 +2,9 @@
 
 #include "module.h"
 
-class synthModule : module {
+class synthModule : public module {
 public:
-	synthModule(std::shared_ptr<voices> voiceManager);
+	synthModule(std::shared_ptr<voices> voiceManager) : module(std::move(voiceManager)) { }
 
-	audioSignal& play(noteSignal& signal) override;
+	void play(const noteSignal& signal, audioSignal& output) override;
 };

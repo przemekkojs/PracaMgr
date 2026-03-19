@@ -1,6 +1,6 @@
 #include "../h/voices.h"
 
-voice::voice(std::string name, int id, bool active=false) {
+voice::voice(std::string name, int id, bool active) {
 	this->name = name;
 	this->id = id;
 	this->active = active;
@@ -54,8 +54,8 @@ std::vector<std::string> voices::getActiveSamplesPaths() {
 	return result;
 }
 
-std::vector<voice&> voices::getActiveVoices() {
-	std::vector<voice&> result;
+std::vector<voice> voices::getActiveVoices() {
+	std::vector<voice> result;
 
 	for (auto& v : this->container) {
 		if (v.isActive()) {
