@@ -1,5 +1,7 @@
 #pragma once
 
+#include <string>
+
 struct noteSignal {
 	unsigned char note;
 	unsigned char channel;
@@ -10,6 +12,10 @@ struct noteSignal {
 
 	bool operator==(const noteSignal& other) const {
 		return note == other.note && channel == other.channel && on == other.on;
+	}
+
+	std::string toString() {
+
 	}
 };
 
@@ -23,6 +29,10 @@ struct ccSignal {
 
 	bool operator==(const ccSignal& other) const {
 		return cc == other.cc && channel == other.channel && value == other.value;
+	}
+
+	std::string toString() {
+
 	}
 };
 
