@@ -6,7 +6,7 @@ samplesModule::samplesModule(std::shared_ptr<voices> voiceManager) : module(std:
 	ma_engine_init(NULL, &this->engine);
 	
 	for (auto& v : this->voiceManager->getVoices()) {
-		for (int note = LOWEST_NOTE; note < LOWEST_NOTE + NUMBER_OF_NOTES; note++) {
+		for (int note = LOWEST_NOTE; note < (LOWEST_NOTE + NUMBER_OF_NOTES); note++) {
 			std::vector<std::string> paths = v.getSamplesPath(note);
 
 			std::string attackPath = paths[0];
@@ -36,6 +36,9 @@ samplesModule::~samplesModule() {
 
 void samplesModule::play(const noteSignal& signal, audioSignal& output) {
 	int note = signal.note;
+
+	if (note < LOWEST_NOTE || note >(LOWEST_NOTE + NUMBER_OF_NOTES))
+		return;
 	
 	for (const auto& v : this->voiceManager->getActiveVoices()) {
 		int id = v.getId();
