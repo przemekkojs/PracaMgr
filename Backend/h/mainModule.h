@@ -20,9 +20,9 @@ public:
 	void setSynthActive(bool value) { this->synthActive = value; }
 	void setModelActive(bool value) { this->modelActive = value; }
 
-	bool getSamplesActive() { return samplesActive; }
-	bool getSynthActive() { return synthActive; }
-	bool getModelActive() { return modelActive; }
+	const bool getSamplesActive() const { return samplesActive; }
+	const bool getSynthActive() const { return synthActive; }
+	const bool getModelActive() const { return modelActive; }
 
 private:
 	std::shared_ptr<voices> voiceManager;

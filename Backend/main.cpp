@@ -29,9 +29,10 @@ int main()
 
 	midiIn.openPort(portIndex);
 
-	instrument.setModelActive(true);
+	instrument.setModelActive(false);
 	instrument.setSamplesActive(true);
-	instrument.setSynthActive(true);
+	instrument.setSynthActive(false);
+	instrument.getVoicesManager()->setActive(1, true);	
 
 	while (true) {
 		std::vector<unsigned char> message;
