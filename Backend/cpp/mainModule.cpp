@@ -2,8 +2,8 @@
 
 #include <iostream>
 
-mainModule::mainModule()
-	: voiceManager(std::make_shared<voices>()),
+mainModule::mainModule() :
+	voiceManager(std::make_shared<voices>()),
 	samples(voiceManager),
 	synth(voiceManager),
 	model(voiceManager),
@@ -11,7 +11,7 @@ mainModule::mainModule()
 	synthActive(false),
 	modelActive(false)
 {
-	std::cout << "Main module init" << std::endl;
+	std::cout << "Main module initialized." << std::endl;
 }
 
 void mainModule::play(noteSignal& MIDISignal) {

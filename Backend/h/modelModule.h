@@ -4,7 +4,7 @@
 
 class modelModule : public module {
 public:
-	modelModule(std::shared_ptr<voices> voiceManager) : module(std::move(voiceManager)) {}
+	modelModule(std::shared_ptr<voices> voiceManager);
 	
 	void play(const noteSignal& signal, audioSignal& output) override;
 };

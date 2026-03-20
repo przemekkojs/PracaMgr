@@ -2,6 +2,7 @@
 project(Backend)
 
 configure_file(local/samples/instrument local/samples/instrument COPYONLY)
+file(COPY local/samples DESTINATION ${CMAKE_BINARY_DIR}/local)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -17,7 +18,7 @@ add_subdirectory(lib/pybind11)
 
 add_library(rtmidi STATIC
     lib/RtMidi.cpp
-)
+ "cpp/miniaudio_impl.cpp")
 
 target_include_directories(rtmidi PUBLIC lib)
 target_compile_definitions(rtmidi PUBLIC __WINDOWS_MM__)
@@ -34,7 +35,7 @@ add_library(core
     cpp/signal.cpp
     cpp/synthModule.cpp
     cpp/voices.cpp
-)
+    cpp/miniaudio_impl.cpp)
 
 target_include_directories(core PUBLIC h)
 

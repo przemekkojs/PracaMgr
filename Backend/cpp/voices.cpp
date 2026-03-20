@@ -43,12 +43,14 @@ void voices::loadVoices() {
 
 		std::transform(name.begin(), name.end(), name.begin(), ::tolower);
 		std::replace(name.begin(), name.end(), ' ', '-');
-		voice v = voice(name, id, true); // TODO: Zmieniæ na false
+		voice v = voice(name, id, false);
 		this->container.push_back(v);
 	}
 }
 
 bool voices::setActive(int id, bool value) {
+	std::cout << "Voice " << id << ": " << value << std::endl;
+
 	for (auto& v : this->container) {
 		if (v.getId() == id) {
 			v.setActive(value);
