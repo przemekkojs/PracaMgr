@@ -2,7 +2,7 @@
 
 #include <iostream>
 
-samplesModule::samplesModule(std::shared_ptr<voices> voiceManager) : module(std::move(voiceManager)) {
+samplesModule::samplesModule(std::shared_ptr<voices> voiceManager, int maxPolyphony) : module(std::move(voiceManager)) {
 	std::cout << "Samples module init" << std::endl;
 	ma_result initResult = ma_engine_init(NULL, &this->engine);	
 
@@ -12,6 +12,7 @@ samplesModule::samplesModule(std::shared_ptr<voices> voiceManager) : module(std:
 	}
 
 	this->initEngine();
+	this->maxPolyphony = maxPolyphony;
 }
 
 void samplesModule::initEngine() {
@@ -78,7 +79,7 @@ samplesModule::~samplesModule() {
 void samplesModule::play(const noteSignal& signal, audioSignal& output) {
 	int note = signal.note;
 
-	if (note < LOWEST_NOTE || note >(LOWEST_NOTE + NUMBER_OF_NOTES))
+	if (note < LOWEST_NOTE || note >= (LOWEST_NOTE + NUMBER_OF_NOTES))
 		return;
 	
 	for (const auto& v : this->voiceManager->getActiveVoices()) {
@@ -88,9 +89,19 @@ void samplesModule::play(const noteSignal& signal, audioSignal& output) {
 		if (it == samples.end())
 			continue;
 
-		if (signal.on)
-			ma_sound_start(&it->second->sustain);
-		else
-			ma_sound_stop(&it->second->sustain);
+		if (signal.on) {
+			it->second->startLoop();
+		}			
+		else {
+			it->second->stopLoop();
+		}			
 	}
+}
+
+void sampleSet::startLoop() {
+	ma_sound_start(&sustain);
+}
+
+void sampleSet::stopLoop() {
+	ma_sound_stop(&sustain);
 }
