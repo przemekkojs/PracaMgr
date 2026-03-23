@@ -23,10 +23,7 @@ int main()
 		std::cout << portIndex << " " << midiIn.getPortName(portIndex) << std::endl;
 	}
 
-	int portIndex = 0;
-	std::cout << "Port index: ";
-	std::cin >> portIndex;
-
+	int portIndex = 1;
 	midiIn.openPort(portIndex);
 
 	instrument.setModelActive(false);

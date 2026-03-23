@@ -18,6 +18,9 @@ struct LoopingSample {
     ma_uint64 loopStart;
     ma_uint64 loopEnd;
     ma_uint64 fadeLength;
+
+    bool loopActive;
+    ma_uint64 fadeCursor;
 };
 
 struct sampleSet {
