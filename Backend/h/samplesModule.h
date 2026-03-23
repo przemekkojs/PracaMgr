@@ -6,13 +6,29 @@
 #include <map>
 #include <queue>
 
-struct sampleSet {
-	ma_sound attack;
-	ma_sound sustain;
-	ma_sound release;
+struct LoopingSample {
+    ma_data_source_base base;
 
-	void startLoop();
-	void stopLoop();
+    float* data;
+    ma_uint64 frameCount;
+    ma_uint32 channels;
+    ma_uint32 sampleRate;
+
+    ma_uint64 cursor;
+    ma_uint64 loopStart;
+    ma_uint64 loopEnd;
+    ma_uint64 fadeLength;
+};
+
+struct sampleSet {
+    ma_sound attack;
+    ma_sound sustain;
+    ma_sound release;
+
+    LoopingSample looping;
+
+    void startLoop();
+    void stopLoop();
 };
 
 class samplesModule : public module {

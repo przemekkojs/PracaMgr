@@ -1,9 +1,6 @@
 ﻿cmake_minimum_required(VERSION 3.15)
 project(Backend)
 
-configure_file(local/samples/instrument local/samples/instrument COPYONLY)
-file(COPY local/samples DESTINATION ${CMAKE_BINARY_DIR}/local)
-
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
@@ -69,4 +66,11 @@ add_custom_command(TARGET organ POST_BUILD
         PYTHONPATH=${CMAKE_SOURCE_DIR}/python
         ${Python3_EXECUTABLE} -m pybind11_stubgen organ
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/python
+)
+
+add_custom_command(TARGET organ POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E rm -rf ${CMAKE_BINARY_DIR}/local/samples
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+        ${CMAKE_SOURCE_DIR}/local/samples
+        ${CMAKE_BINARY_DIR}/local/samples
 )
