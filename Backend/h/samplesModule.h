@@ -25,13 +25,19 @@ struct LoopingSample {
 
 struct sampleSet {
     ma_sound attack;
-    ma_sound sustain;
+    ma_sound sustain1;
+    ma_sound sustain2;
     ma_sound release;
 
     LoopingSample looping;
 
+    bool useFirst = true;
+    float crossfadePos = 0.0f;
+    float crossfadeStep = 1.0f / 4096.0f;
+
     void startLoop();
     void stopLoop();
+    void updateLooping();
 };
 
 class samplesModule : public module {
@@ -45,6 +51,7 @@ public:
 private:
 	std::map<std::pair<int, int>, sampleSet*> samples;
 	ma_engine engine;
+    ma_device device;
 
 	int maxPolyphony;
 };
