@@ -1,267 +1,188 @@
 #include "../h/samplesModule.h"
 #include <iostream>
-#include <algorithm>
+#include <cstring>
 
-ma_result LoopingSample_getDataFormat(ma_data_source* pDataSource, ma_format* pFormat, ma_uint32* pChannels, ma_uint32* pSampleRate, ma_channel*, size_t) {
-    LoopingSample* s = (LoopingSample*)pDataSource;
+samplesModule::samplesModule(std::shared_ptr<voices> voiceManager, int maxPolyphony)
+    : module(std::move(voiceManager)), maxPolyphony(maxPolyphony)
+{
+    std::cout << "Samples module init\n";
 
-    *pFormat = ma_format_f32;
-    *pChannels = s->channels;
-    *pSampleRate = s->sampleRate;
-    return MA_SUCCESS;
-}
+    ma_device_config config = ma_device_config_init(ma_device_type_playback);
+    config.playback.format = ma_format_f32;
+    config.playback.channels = 2;
+    config.sampleRate = 48000;
+    config.dataCallback = audioCallback;
+    config.pUserData = this;
 
-ma_result LoopingSample_seek_to_pcm_frame(ma_data_source* pDataSource, ma_uint64 frameIndex) {
-    LoopingSample* s = (LoopingSample*)pDataSource;
-    if (frameIndex >= s->frameCount) return MA_ERROR;
-    s->cursor = frameIndex;
-    return MA_SUCCESS;
-}
-
-ma_result LoopingSample_read_pcm_frames(ma_data_source* pDataSource, void* pFramesOut, ma_uint64 frameCount, ma_uint64* pFramesRead) {
-    LoopingSample* s = (LoopingSample*)pDataSource;
-    float* out = (float*)pFramesOut;
-    ma_uint64 framesAvailable = s->frameCount - s->cursor;
-    ma_uint64 framesToCopy = std::min(frameCount, framesAvailable);
-
-    std::copy(s->data + s->cursor * s->channels, s->data + (s->cursor + framesToCopy) * s->channels, out);
-    s->cursor += framesToCopy;
-
-    if (pFramesRead)
-        *pFramesRead = framesToCopy;
-    return MA_SUCCESS;
-}
-
-ma_data_source_vtable g_looping_vtable = {
-    LoopingSample_read_pcm_frames,
-    LoopingSample_seek_to_pcm_frame,
-    LoopingSample_getDataFormat,
-    nullptr,
-    nullptr,
-    nullptr,
-    0
-};
-
-// prosta funkcja miksuj¹ca do stereo
-static void audioCallback(ma_device* pDevice, void* pOutput, const void*, ma_uint32 frameCount) {
-    samplesModule* module = (samplesModule*)pDevice->pUserData;
-    float* out = (float*)pOutput;
-
-    // wyzeruj bufor wyjœciowy
-    std::fill(out, out + frameCount * 2, 0.0f); // stereo
-
-    // dla wszystkich próbek w module
-    for (auto& [key, set] : module->getSamples()) {
-        set->updateLooping(); // aktualizacja pêtli i crossfade
-
-        // prosty miks – minimalny przyk³ad, zak³ada, ¿e sustain1 i sustain2 s¹ w³¹czone
-        // jeœli graj¹, pobieramy z nich próbki i dodajemy do out
-        // tutaj zostawiamy puste, bo ma_sound odtwarza samodzielnie
-        // jeœli chcesz miksowaæ rêcznie, musisz u¿yæ ma_sound_read_pcm_frames
-    }
-}
-
-samplesModule::samplesModule(std::shared_ptr<voices> voiceManager, int maxPolyphony) : module(std::move(voiceManager)) {
-    std::cout << "Samples module init" << std::endl;
-
-    this->maxPolyphony = maxPolyphony;
-
-    if (ma_engine_init(NULL, &this->engine) != MA_SUCCESS) {
-        throw std::runtime_error("Engine init failed!");
+    if (ma_device_init(NULL, &config, &device) != MA_SUCCESS) {
+        throw std::runtime_error("Device init failed");
     }
 
-    this->initEngine();
+    activeVoices.resize(maxPolyphony);
 
-    std::cout << "Device init" << std::endl;
-    ma_device_config deviceConfig = ma_device_config_init(ma_device_type_playback);
-    deviceConfig.playback.format = ma_format_f32;
-    deviceConfig.playback.channels = 2;
-    deviceConfig.sampleRate = 44100;
-    deviceConfig.dataCallback = audioCallback;
-    deviceConfig.pUserData = this;
+    initEngine();
 
-    if (ma_device_init(NULL, &deviceConfig, &this->device) != MA_SUCCESS) {
-        throw std::runtime_error("Failed to init device");
-    }
-
-    if (ma_device_start(&this->device) != MA_SUCCESS) {
-        throw std::runtime_error("Failed to start device");
-    }
-
-    std::cout << "Device initialised" << std::endl;
+    ma_device_start(&device);
 }
 
-void samplesModule::initEngine() {
-    std::cout << "Samples engine init" << std::endl;
-    int loadedSamples = 0;
-    const int predictedSamplesCount = this->voiceManager->getVoices().size() * NUMBER_OF_NOTES;
+samplesModule::~samplesModule()
+{
+    std::cout << "Destructor of Samples module\n";
+
+    ma_device_uninit(&device);
+
+    for (auto& [key, s] : samples) {
+        free(s.s1.data);
+        free(s.s2.data);
+    }
+
+    std::cout << "Destructed\n";
+}
+
+void samplesModule::initEngine()
+{
+    std::cout << "Loading samples...\n";
 
     for (const auto& v : this->voiceManager->getVoices()) {
-        for (int note = LOWEST_NOTE; note < (LOWEST_NOTE + NUMBER_OF_NOTES); note++) {
-            std::vector<std::string> paths = v.getSamplesPath(note);
-            std::string attackPath = paths[0];
-            std::string sustainPath = paths[1];
-            std::string releasePath = paths[2];
-            sampleSet* set = new sampleSet();
+        for (int note = LOWEST_NOTE; note < LOWEST_NOTE + NUMBER_OF_NOTES; note++) {
 
-            if (ma_sound_init_from_file(&engine, attackPath.c_str(), 0, NULL, NULL, &set->attack) != MA_SUCCESS) {
-                std::cout << "Failed to load attack: " << attackPath << std::endl;
-                delete set;
-                continue;
-            }
+            auto paths = v.getSamplesPath(note);
+            if (paths.size() < 2) continue;
 
-            ma_decoder_config config = ma_decoder_config_init(ma_format_f32, 0, 0);
-            ma_decoder decoder;
+            sampleSet s{};
+            ma_uint32 ch1, ch2;
 
-            if (ma_decoder_init_file(sustainPath.c_str(), &config, &decoder) != MA_SUCCESS) {
-                std::cout << "Decoder init failed" << std::endl;
-                delete set;
-                continue;
-            }
+            if (!loadSampleToBuffer(paths[1].c_str(), &s.s1, &ch1)) continue;
+            if (!loadSampleToBuffer(paths[1].c_str(), &s.s2, &ch2)) continue;
 
-            ma_uint64 frameCount;
-            ma_decoder_get_length_in_pcm_frames(&decoder, &frameCount);
+            if (ch1 != ch2) continue;
 
-            if (frameCount == 0) {
-                std::cout << "Sustain sample empty: " << sustainPath << std::endl;
-                ma_decoder_uninit(&decoder);
-                delete set;
-                continue;
-            }
+            s.channels = ch1;
+            s.crossfadeFrames = 1024;
 
-            float* pcm = new float[frameCount * decoder.outputChannels];
-            ma_decoder_read_pcm_frames(&decoder, pcm, frameCount, nullptr);
-
-            set->looping.data = pcm;
-            set->looping.frameCount = frameCount;
-            set->looping.base.vtable = &g_looping_vtable;
-            set->looping.channels = decoder.outputChannels;
-            set->looping.sampleRate = decoder.outputSampleRate;
-
-            set->looping.loopStart = 0;
-            set->looping.loopEnd = frameCount;
-            set->looping.cursor = set->looping.loopStart;
-            set->looping.fadeLength = std::min<ma_uint64>(frameCount / 32, frameCount - 1);
-
-            if (ma_sound_init_from_data_source(&engine, &set->looping, 0, NULL, &set->sustain1) != MA_SUCCESS ||
-                ma_sound_init_from_data_source(&engine, &set->looping, 0, NULL, &set->sustain2) != MA_SUCCESS) {
-                delete[] pcm;
-                delete set;
-                ma_decoder_uninit(&decoder);
-                continue;
-            }
-
-            ma_sound_set_volume(&set->sustain1, 1.0f);
-            ma_sound_set_volume(&set->sustain2, 0.0f);
-            ma_decoder_uninit(&decoder);
-
-            if (ma_sound_init_from_file(&engine, releasePath.c_str(), 0, NULL, NULL, &set->release) != MA_SUCCESS) {
-                ma_sound_uninit(&set->attack);
-                ma_sound_uninit(&set->sustain1);
-                ma_sound_uninit(&set->sustain2);
-
-                delete[] pcm;
-                delete set;
-                continue;
-            }
-
-            loadedSamples += 1;
-            samples.emplace(std::pair{ v.getId(), note }, set);
+            samples[{v.getId(), note}] = s;
         }
     }
 
-    ma_engine_set_volume(&engine, 1.0f);
-    std::cout << "Successfully loaded " << loadedSamples << " of " << predictedSamplesCount << " samples" << std::endl;
+    std::cout << "Loaded samples: " << samples.size() << "\n";
 }
 
-samplesModule::~samplesModule() {
-    std::cout << "Destructor of Samples module" << std::endl;
-
-    for (auto& [key, set] : samples) {
-        ma_sound_uninit(&set->attack);
-        ma_sound_uninit(&set->sustain1);
-        ma_sound_uninit(&set->sustain2);
-        ma_sound_uninit(&set->release);
-
-        delete[] set->looping.data;
-        delete set;
-    }
-
-    ma_device_uninit(&device);
-    ma_engine_uninit(&engine);
-
-    std::cout << "Destructed" << std::endl;
-}
-
-void samplesModule::play(const noteSignal& signal, audioSignal&) {
+void samplesModule::play(const noteSignal& signal, audioSignal&)
+{
     int note = signal.note;
-    if (note < LOWEST_NOTE || note >= (LOWEST_NOTE + NUMBER_OF_NOTES)) return;
 
     for (const auto& v : this->voiceManager->getActiveVoices()) {
         int id = v.getId();
+
         auto it = samples.find({ id, note });
         if (it == samples.end()) continue;
 
-        sampleSet* set = it->second;
+        for (auto& av : activeVoices) {
+            if (!av.active) {
+                av.sample = it->second;
 
-        if (signal.on) {
-            set->startLoop();
-        }
-        else {
-            set->stopLoop();
-        }
-    }
-}
+                av.sample.cursor1 = 0;
+                av.sample.cursor2 = 0;
+                av.sample.useFirst = true;
 
-void sampleSet::startLoop() {
-    looping.loopActive = true;
-    looping.cursor = looping.loopStart;
-    useFirst = true;
-    crossfadePos = 0.0f;
-
-    ma_sound_stop(&sustain1);
-    ma_sound_stop(&sustain2);
-
-    ma_sound_set_volume(&sustain1, 1.0f);
-    ma_sound_set_volume(&sustain2, 0.0f);
-
-    ma_sound_start(&sustain1);
-}
-
-void sampleSet::stopLoop() {
-    looping.loopActive = false;
-    ma_sound_stop(&sustain1);
-    ma_sound_stop(&sustain2);
-}
-
-void sampleSet::updateLooping() {   
-    if (!looping.loopActive) return;
-
-    ma_uint64 fadeStart = looping.loopEnd - looping.fadeLength;
-    if (looping.cursor >= fadeStart) {
-        float t = float(looping.cursor - fadeStart) / float(looping.fadeLength);
-
-        if (useFirst) {
-            if (!ma_sound_is_playing(&sustain2)) {
-                ma_sound_seek_to_pcm_frame(&sustain2, looping.loopStart);
-                ma_sound_start(&sustain2);
+                av.active = true;
+                return;
             }
-            ma_sound_set_volume(&sustain1, 1.0f - t);
-            ma_sound_set_volume(&sustain2, t);
         }
-        else {
-            if (!ma_sound_is_playing(&sustain1)) {
-                ma_sound_seek_to_pcm_frame(&sustain1, looping.loopStart);
-                ma_sound_start(&sustain1);
-            }
-            ma_sound_set_volume(&sustain2, 1.0f - t);
-            ma_sound_set_volume(&sustain1, t);
+    }
+}
+
+void samplesModule::audioCallback(ma_device* device, void* output, const void*, ma_uint32 frameCount)
+{
+    auto* self = (samplesModule*)device->pUserData;
+    float* out = (float*)output;
+
+    const ma_uint32 channels = 2;
+
+    std::memset(out, 0, frameCount * channels * sizeof(float));
+
+    for (auto& v : self->activeVoices) {
+        if (!v.active) continue;
+
+        processSampleSet(&v.sample, out, frameCount);
+    }
+}
+
+void samplesModule::processSampleSet(sampleSet* s, float* out, ma_uint32 frameCount)
+{
+    SampleBuffer* cur = s->useFirst ? &s->s1 : &s->s2;
+    SampleBuffer* next = s->useFirst ? &s->s2 : &s->s1;
+
+    ma_uint64* ccur = s->useFirst ? &s->cursor1 : &s->cursor2;
+    ma_uint64* cnext = s->useFirst ? &s->cursor2 : &s->cursor1;
+    ma_uint64 posCur = (*ccur < cur->length) ? *ccur : (cur->length - 1);
+    ma_uint64 posNext = (*cnext < next->length) ? *cnext : (next->length - 1);
+
+    const ma_uint32 ch = s->channels;
+
+    for (ma_uint32 i = 0; i < frameCount; i++) {
+
+        ma_uint64 remaining = cur->length - *ccur;
+
+        float t = 0.0f;
+        if (remaining <= s->crossfadeFrames) {
+            t = 1.0f - (float)remaining / (float)s->crossfadeFrames;
         }
+
+        for (ma_uint32 c = 0; c < ch; c++) {
+
+            float a = cur->data[posCur * ch + c];
+            float b = next->data[posNext * ch + c];
+
+            float gainA = cosf(t * 1.5707963f);
+            float gainB = sinf(t * 1.5707963f);
+
+            out[i * ch + c] += a * gainA + b * gainB;
+        }
+
+        (*ccur)++;
+
+        if (remaining <= s->crossfadeFrames)
+            (*cnext)++;
+
+        if (*ccur >= cur->length) {
+            *ccur = 0;
+            s->useFirst = !s->useFirst;
+        }
+
+        if (*cnext >= next->length) {
+            *cnext = 0;
+        }
+    }
+}
+
+bool samplesModule::loadSampleToBuffer(const char* file, SampleBuffer* out, ma_uint32* channels)
+{
+    ma_decoder decoder;
+    ma_decoder_config config = ma_decoder_config_init(ma_format_f32, 2, 48000);
+
+    if (ma_decoder_init_file(file, &config, &decoder) != MA_SUCCESS)
+        return false;
+
+    *channels = decoder.outputChannels;
+
+    ma_uint64 totalFrames;
+    ma_decoder_get_length_in_pcm_frames(&decoder, &totalFrames);
+
+    float* data = (float*)malloc(sizeof(float) * totalFrames * (*channels));
+
+    if (!data) {
+        ma_decoder_uninit(&decoder);
+        return false;
     }
 
-    looping.cursor++;
-    if (looping.cursor >= looping.loopEnd) {
-        looping.cursor = looping.loopStart;
-        useFirst = !useFirst;
-    }
+    ma_uint64 framesRead;
+    ma_decoder_read_pcm_frames(&decoder, data, totalFrames, &framesRead);
+
+    ma_decoder_uninit(&decoder);
+
+    out->data = data;
+    out->length = framesRead;
+
+    return true;
 }
