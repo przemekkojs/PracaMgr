@@ -1,37 +1,26 @@
 #include "../h/samplesModule.h"
 
-samplesModule::samplesModule(std::shared_ptr<voices> voiceManager, int maxPolyphony) : module(std::move(voiceManager)) {
+samplesModule::samplesModule(std::shared_ptr<voices> voiceManager, int maxPolyphony) : module(std::move(voiceManager)), running(true)
+{
     std::cout << "Samples module init" << std::endl;
 
     this->maxPolyphony = maxPolyphony;
-
-    if (ma_engine_init(NULL, &this->engine) != MA_SUCCESS) {
-        throw std::runtime_error("Engine init failed!");
-    }
-
     this->initEngine();
+    this->initDevice();
+    this->voiceThread = std::thread([this]() { this->voiceManagerThread(); });
 }
 
-void samplesModule::initEngine() {
-    std::cout << "Samples engine init" << std::endl;
-    int loadedSamples = 0;
-    const int predictedSamplesCount = this->voiceManager->getVoices().size() * NUMBER_OF_NOTES;
-
-    for (const auto& v : this->voiceManager->getVoices()) {
-        for (int note = LOWEST_NOTE; note < (LOWEST_NOTE + NUMBER_OF_NOTES); note++) {
-            std::vector<std::string> paths = v.getSamplesPath(note);
-            std::string attackPath = paths[0];
-            std::string sustainPath = paths[1];
-            std::string releasePath = paths[2];            
-        }
-    }
-
-    ma_engine_set_volume(&engine, 1.0f);
-    std::cout << "Successfully loaded " << loadedSamples << " of " << predictedSamplesCount << " samples" << std::endl;
-}
-
-samplesModule::~samplesModule() {
+samplesModule::~samplesModule()
+{
     std::cout << "Destructor of Samples module" << std::endl;
+
+    running = false;
+    if (voiceThread.joinable())
+        voiceThread.join();
+
+    for (auto& [key, s] : samples) {
+        delete s;
+    }
 
     ma_device_uninit(&device);
     ma_engine_uninit(&engine);
@@ -39,16 +28,222 @@ samplesModule::~samplesModule() {
     std::cout << "Destructed" << std::endl;
 }
 
-void samplesModule::play(const noteSignal& signal, audioSignal&) {
-    int note = signal.note;
-    if (note < LOWEST_NOTE || note >= (LOWEST_NOTE + NUMBER_OF_NOTES)) return;
+void samplesModule::initDevice() {
+    std::cout << "Device init" << std::endl;
+    ma_device_config deviceConfig = ma_device_config_init(ma_device_type_playback);
+    deviceConfig.playback.format = ma_format_f32;
+    deviceConfig.playback.channels = 2;
+    deviceConfig.sampleRate = 44100;
+    deviceConfig.dataCallback = audioCallback;
+    deviceConfig.pUserData = this;
 
-    for (const auto& v : this->voiceManager->getActiveVoices()) {
-        int id = v.getId();
-        auto it = samples.find({ id, note });
+    if (ma_device_init(NULL, &deviceConfig, &device) != MA_SUCCESS) {
+        throw std::runtime_error("Failed to init device");
+    }
 
-        if (it == samples.end()) {
-            continue;
+    if (ma_device_start(&device) != MA_SUCCESS) {
+        throw std::runtime_error("Failed to start device");
+    }
+}
+
+void samplesModule::initEngine()
+{
+    std::cout << "Samples engine init" << std::endl;
+
+    if (ma_engine_init(NULL, &engine) != MA_SUCCESS) {
+        throw std::runtime_error("Engine init failed!");
+    }
+
+    int loadedSamples = 0;
+    const int predictedSamplesCount = this->voiceManager->getVoices().size() * NUMBER_OF_NOTES;
+
+    for (const auto& v : this->voiceManager->getVoices()) {
+        for (int note = LOWEST_NOTE; note < (LOWEST_NOTE + NUMBER_OF_NOTES); note++) {
+            std::vector<std::string> paths = v.getSamplesPath(note);
+
+            if (paths.size() != 3) {
+                std::cout << "Unable to load samples for note " << note << std::endl;
+                continue;
+            }
+
+            std::string sustainPath = paths[1];
+
+            sample* s = new sample();
+            ma_decoder decoder;
+            ma_decoder_config config = ma_decoder_config_init(ma_format_f32, 0, 0);
+
+            if (ma_decoder_init_file(sustainPath.c_str(), &config, &decoder) != MA_SUCCESS) {
+                std::cout << "Failed to open file: " << sustainPath << std::endl;
+                delete s;
+                continue;
+            }
+
+            ma_uint64 frameCount;
+            ma_decoder_get_length_in_pcm_frames(&decoder, &frameCount);
+
+            s->data.resize(frameCount * decoder.outputChannels);
+
+            ma_uint64 framesRead;
+            if (ma_decoder_read_pcm_frames(&decoder, s->data.data(), frameCount, &framesRead) != MA_SUCCESS) {
+                std::cout << "Failed to read file: " << sustainPath << std::endl;
+                ma_decoder_uninit(&decoder);
+                delete s;
+                continue;
+            }
+
+            ma_decoder_uninit(&decoder);
+
+            s->frameCount = framesRead;
+            s->channels = decoder.outputChannels;
+            s->sampleRate = decoder.outputSampleRate;
+            s->loaded = true;
+            s->note = note;
+            s->voiceId = v.getId();
+
+            samples[{v.getId(), note}] = s;
+            loadedSamples++;
         }
+    }
+
+    ma_engine_set_volume(&engine, 1.0f);
+    std::cout << "Successfully loaded " << loadedSamples << " of " << predictedSamplesCount << " samples" << std::endl;
+}
+
+void samplesModule::play(const noteSignal& signal, audioSignal&)
+{
+    int note = signal.note;
+
+    if (signal.on)
+    {
+        for (const auto& v : this->voiceManager->getActiveVoices())
+        {
+            int id = v.getId();
+            auto it = samples.find({ id, note });
+            if (it == samples.end()) continue;
+
+            sample* s = it->second;
+            if (!s || !s->loaded) continue;
+
+            sampleVoice voice;
+            voice.s = s;
+            voice.cursor = 0.0f;
+            voice.increment = 1.0f;
+            voice.loopStart = 0;
+            voice.loopEnd = s->frameCount;
+            voice.fadeLength = 0;
+            voice.looping = false;
+            voice.active = true;
+
+            std::lock_guard<std::mutex> lock(queueMutex);
+            newVoicesQueue.push_back(voice);
+        }
+    }
+    else
+    {
+        std::lock_guard<std::mutex> lock(voicesMutex);
+        for (auto& v : activeVoices)
+        {
+            if (!v.active) continue;
+            if (v.s == nullptr) continue;
+
+            auto it = this->samples.find({ v.s->voiceId, v.s->note });
+            v.active = false;
+        }
+    }
+}
+
+void samplesModule::getSample(sampleVoice& v, float& outL, float& outR)
+{
+    outL = 0.0f;
+    outR = 0.0f;
+
+    if (!v.active || !v.s || !v.s->loaded || v.s->frameCount < 2)
+        return;
+
+    auto& data = v.s->data;
+    uint32_t ch = v.s->channels;
+
+    uint64_t i1 = (uint64_t)v.cursor;
+    uint64_t i2 = i1 + 1;
+    if (i2 >= v.s->frameCount) i2 = v.s->frameCount - 1;
+    float frac = v.cursor - (float)i1;
+
+    uint64_t base1 = i1 * ch;
+    uint64_t base2 = i2 * ch;
+
+    if (ch == 1)
+    {
+        float s1 = data[base1];
+        float s2 = data[base2];
+        float val = s1 * (1.0f - frac) + s2 * frac;
+        outL = val;
+        outR = val;
+    }
+    else if (ch == 2)
+    {
+        float l1 = data[base1 + 0];
+        float r1 = data[base1 + 1];
+        float l2 = data[base2 + 0];
+        float r2 = data[base2 + 1];
+
+        outL = l1 * (1.0f - frac) + l2 * frac;
+        outR = r1 * (1.0f - frac) + r2 * frac;
+    }
+
+    v.cursor += v.increment;
+    if (v.cursor >= v.s->frameCount)
+        v.active = false;
+}
+
+void samplesModule::audioCallback(ma_device* pDevice, void* pOutput, const void*, ma_uint32 frameCount)
+{
+    auto* module = (samplesModule*)pDevice->pUserData;
+    float* out = (float*)pOutput;
+
+    std::lock_guard<std::mutex> lock(module->voicesMutex);
+    auto& voices = module->getActiveVoices();
+
+    for (ma_uint32 i = 0; i < frameCount; i++)
+    {
+        float outL = 0.0f;
+        float outR = 0.0f;
+
+        for (auto& v : voices)
+        {
+            if (!v.active) continue;
+            float l, r;
+            module->getSample(v, l, r);
+            outL += l;
+            outR += r;
+        }
+
+        out[i * 2 + 0] = outL * 0.2f;
+        out[i * 2 + 1] = outR * 0.2f;
+    }
+}
+
+void samplesModule::voiceManagerThread()
+{
+    while (running)
+    {
+        {
+            std::lock_guard<std::mutex> lock(queueMutex);
+            if (!newVoicesQueue.empty())
+            {
+                std::lock_guard<std::mutex> lock2(voicesMutex);
+                for (auto& v : newVoicesQueue)
+                    activeVoices.push_back(v);
+                newVoicesQueue.clear();
+            }
+
+            std::lock_guard<std::mutex> lock2(voicesMutex);
+            activeVoices.erase(
+                std::remove_if(activeVoices.begin(), activeVoices.end(),
+                    [](const sampleVoice& v) { return !v.active; }),
+                activeVoices.end()
+            );
+        }
+
+        std::this_thread::sleep_for(std::chrono::milliseconds(5));
     }
 }
