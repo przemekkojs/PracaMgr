@@ -80,7 +80,11 @@ class ui(QWidget):
         for item in [self.activeBox, self.statsBox]:
             layout.addLayout(item)
 
-        self.setLayout(layout)
+        self.deviceNameLabel:QLabel = QLabel("Brak wejściowego urządzenia MIDI")
+        mainLayout:QVBoxLayout = QVBoxLayout()        
+        mainLayout.addWidget(self.deviceNameLabel)
+        mainLayout.addLayout(layout)
+        self.setLayout(mainLayout)
 
     def setSynthActive(self):
         print("Syntezator aktywny:", self.synthActiveBox.cBox.isChecked())
@@ -90,6 +94,9 @@ class ui(QWidget):
 
     def setSamplesActive(self):
         print("Sampler aktywny:", self.samplesActiveBox.cBox.isChecked())
+
+    def setDeviceName(self, value:str):
+        self.deviceNameLabel.setText(value)
 
 if __name__ == '__main__':
     app:QApplication = QApplication(sys.argv)
