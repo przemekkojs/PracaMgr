@@ -7,10 +7,13 @@ class checkboxLabel(QWidget):
         super().__init__()
         self.cBox:QCheckBox = QCheckBox()
         self.label:QLabel = QLabel(label_text)
-        self.setLayout(QHBoxLayout())
+        
+        layout = QHBoxLayout()
 
-        self.layout().addWidget(self.cBox)
-        self.layout().addWidget(self.label)
+        layout.addWidget(self.cBox)
+        layout.addWidget(self.label)
+
+        self.setLayout(layout)
 
         self.cBox.stateChanged.connect(callback)
 
@@ -22,60 +25,71 @@ class textboxLabel(QWidget):
         self.tBox.setReadOnly(readonly)
 
         self.label:QLabel = QLabel(label_text)
-        self.setLayout(QHBoxLayout())
+        layout = QHBoxLayout()        
 
-        self.layout().addChildWidget(self.tBox)
-        self.layout().addChildWidget(self.label)
+        layout.addWidget(self.tBox)
+        layout.addWidget(self.label)
+
+        self.setLayout(layout)
 
     def setText(self, text:str) -> None:
         self.tBox.setText(text)
 
 
-class ui(QMainWindow):
+class ui(QWidget):
     def __init__(self):
         super().__init__()
 
-        self.setLayout(QHBoxLayout())
+        layout = QHBoxLayout()
         self.setWindowTitle("Praca magisterska")
 
-        self.cpuUsageText:textboxLabel = textboxLabel("CPU (Percent)")
+        self.cpuUsageText:textboxLabel = textboxLabel("CPU (%)")
         self.ramUsageText:textboxLabel = textboxLabel("RAM (MB)")
         self.usagesBox:QVBoxLayout = QVBoxLayout()
         
-        for item in [self.cpuUsageText, self.ramUsageText]:
-            self.usagesBox.addChildWidget(item)
+        for item in [QLabel("Zużycie zasobów"), self.cpuUsageText, self.ramUsageText]:
+            self.usagesBox.addWidget(item)
 
-        self.synthRealismText:textboxLabel = textboxLabel("Synth realism")
-        self.modelRealismText:textboxLabel = textboxLabel("Model realism")
-        self.realismBox:QVBoxLayout = QVBoxLayout()
+        self.synthRealismText1:textboxLabel = textboxLabel("Syntezator")
+        self.modelRealismText1:textboxLabel = textboxLabel("Model")
+        self.realismBox1:QVBoxLayout = QVBoxLayout()
 
-        for item in [self.synthRealismText, self.modelRealismText]:
-            self.realismBox.addChildWidget(item)
+        for item in [QLabel("Metryka 1"), self.synthRealismText1, self.modelRealismText1]:
+            self.realismBox1.addWidget(item)
+
+        self.synthRealismText2:textboxLabel = textboxLabel("Syntezator")
+        self.modelRealismText2:textboxLabel = textboxLabel("Model")
+        self.realismBox2:QVBoxLayout = QVBoxLayout()
+
+        for item in [QLabel("Metryka 2"), self.synthRealismText2, self.modelRealismText2]:
+            self.realismBox2.addWidget(item)
 
         self.statsBox:QVBoxLayout = QVBoxLayout()
         
-        for item in [self.usagesBox, self.realismBox]:
-            self.statsBox.addChildLayout(item)
+        for item in [self.usagesBox, self.realismBox1, self.realismBox2]:
+            self.statsBox.addLayout(item)
 
-        self.synthActiveBox:checkboxLabel = checkboxLabel("Synth active", self.setSynthActive)
-        self.samplesActiveBox:checkboxLabel = checkboxLabel("Samples active", self.setSamplesActive)
-        self.modelActiveBox:checkboxLabel = checkboxLabel("Model active", self.setModelActive)
+        self.synthActiveBox:checkboxLabel = checkboxLabel("Syntezator", self.setSynthActive)
+        self.samplesActiveBox:checkboxLabel = checkboxLabel("Sampler", self.setSamplesActive)
+        self.modelActiveBox:checkboxLabel = checkboxLabel("Model", self.setModelActive)
         self.activeBox:QVBoxLayout = QVBoxLayout()
         
-        for item in [self.synthActiveBox, self.samplesActiveBox, self.modelActiveBox]:
-            self.activeBox.addChildWidget(item)
+        for item in [QLabel("Moduły"), self.synthActiveBox, self.samplesActiveBox, self.modelActiveBox]:
+            self.activeBox.addWidget(item)
 
         for item in [self.activeBox, self.statsBox]:
-            self.layout().addChildLayout(item)
+            layout.addLayout(item)
+
+        self.setLayout(layout)
 
     def setSynthActive(self):
-        pass
+        print("Syntezator aktywny:", self.synthActiveBox.cBox.isChecked())
 
     def setModelActive(self):
-        pass
+        print("Model aktywny:", self.modelActiveBox.cBox.isChecked())
 
     def setSamplesActive(self):
-        pass
+        print("Sampler aktywny:", self.samplesActiveBox.cBox.isChecked())
 
 if __name__ == '__main__':
     app:QApplication = QApplication(sys.argv)
