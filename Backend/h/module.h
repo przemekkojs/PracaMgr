@@ -11,6 +11,8 @@ public:
 	virtual ~module() = default;
 
 	virtual void play(const noteSignal& signal, audioSignal& output) = 0;
+	virtual void unload() = 0;
+	virtual void load() = 0;
 
 protected:
 	std::shared_ptr<voices> voiceManager;
