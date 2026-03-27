@@ -6,11 +6,7 @@ mainModule::mainModule() :
 	voiceManager(std::make_shared<voices>()),
 	samples(voiceManager),
 	synth(voiceManager),
-	model(voiceManager),
-	samplesActive(false),
-	synthActive(false),
-	modelActive(false)
-{
+	model(voiceManager) {
 	std::cout << "Main module initialized." << std::endl;
 }
 
@@ -21,13 +17,13 @@ void mainModule::play(noteSignal& MIDISignal) {
 	audioSignal modelSignal;
 	audioSignal samplesSignal;
 
-	if (this->synthActive)
+	if (this->getSynthActive())
 		this->synth.play(MIDISignal, synthSignal);
 
-	if (this->modelActive)
+	if (this->getModelActive())
 		this->model.play(MIDISignal, modelSignal);
 
-	if (this->samplesActive)
+	if (this->getSamplesActive())
 		this->samples.play(MIDISignal, samplesSignal);
 
 	// Tutaj jakoœ ten sygna³ trzeba bêdzie odtwarzaæ

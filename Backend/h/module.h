@@ -14,6 +14,10 @@ public:
 	virtual void unload() = 0;
 	virtual void load() = 0;
 
+	const bool isActive() const { return active; }
+	void setActive(bool value);
+
 protected:
 	std::shared_ptr<voices> voiceManager;
+	bool active;
 };

@@ -47,16 +47,11 @@ public:
 
     void play(const noteSignal& signal, audioSignal& output) override;
     void load() override;
-    void unload() override;
-    void loadSamples();
-    void initEngine();
-    void initDevice();    
+    void unload() override;    
 
     const std::map<std::pair<int, int>, sample*>& getSamples() const { return samples; }
     std::vector<sampleVoice>& getActiveVoices() { return activeVoices; }
-
     std::mutex& getVoicesMutex() { return voicesMutex; }
-
 private:
     std::map<std::pair<int, int>, sample*> samples;
 
@@ -64,7 +59,6 @@ private:
     ma_device device;
 
     int maxPolyphony;
-    bool moduleActive;
 
     std::vector<sampleVoice> newVoicesQueue;
     std::vector<sampleVoice> activeVoices;
@@ -76,4 +70,8 @@ private:
 
     void getSample(sampleVoice& v, float& outL, float& outR);
     static void audioCallback(ma_device* pDevice, void* pOutput, const void* pInput, ma_uint32 frameCount);
+    void initEngine();
+    void initDevice();
+    void loadSamples();
+    void unloadSamples();
 };

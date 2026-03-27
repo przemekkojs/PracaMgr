@@ -1,19 +1,13 @@
 #include "../h/samplesModule.h"
 
-samplesModule::samplesModule(std::shared_ptr<voices> voiceManager, int maxPolyphony) : module(std::move(voiceManager)), running(true)
+samplesModule::samplesModule(std::shared_ptr<voices> voiceManager, int maxPolyphony) : module(std::move(voiceManager))
 {
     std::cout << "Samples module init" << std::endl;
 
     this->maxPolyphony = maxPolyphony;
-    this->running = false;
-    this->moduleActive = false;
 
     this->initEngine();    
-    this->initDevice();
-    this->loadSamples();
-
-    this->moduleActive = true;
-    this->voiceThread = std::thread([this]() { this->voiceManagerThread(); });
+    this->initDevice();    
 
     std::cout << "Samples module initialised" << std::endl;
 }
@@ -40,7 +34,9 @@ void samplesModule::load() {
     std::cout << "Loading..." << std::endl;
 
     this->loadSamples();
-    this->moduleActive = true;
+
+    this->running = true;
+    this->voiceThread = std::thread([this]() { this->voiceManagerThread(); });
 
     std::cout << "Loaded" << std::endl;
 }
@@ -48,7 +44,11 @@ void samplesModule::load() {
 void samplesModule::unload() {
     std::cout << "Unloading..." << std::endl;
 
-    this->moduleActive = false;
+    this->unloadSamples();
+
+    this->running = false;
+    if (voiceThread.joinable())
+        voiceThread.join();
 
     std::cout << "Unloaded" << std::endl;
 }
@@ -137,6 +137,10 @@ void samplesModule::loadSamples() {
 
     ma_engine_set_volume(&engine, 1.0f);
     std::cout << "Successfully loaded " << loadedSamples << " of " << predictedSamplesCount << " samples" << std::endl;
+}
+
+void samplesModule::unloadSamples() {
+
 }
 
 void samplesModule::play(const noteSignal& signal, audioSignal&) {
