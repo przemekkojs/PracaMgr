@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <vector>
 
 struct noteSignal {
 	unsigned char note;
@@ -41,7 +42,15 @@ struct ccSignal {
 };
 
 struct audioSignal {
+	float left = 0.0f;
+	float right = 0.0f;
 
+	std::vector<float> buffer;
+
+	void clear() {
+		left = 0.0f;
+		right = 0.0f;
+	}
 };
 
 const audioSignal EMPTY_AUDIO_SIGNAL = audioSignal();

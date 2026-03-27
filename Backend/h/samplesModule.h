@@ -5,54 +5,74 @@
 
 #include <map>
 #include <queue>
+#include <iostream>
+#include <algorithm>
+#include <mutex>
+#include <thread>
+#include <chrono>
+#include <memory>
 
-struct LoopingSample {
-    ma_data_source_base base;
+struct sample {
+    int voiceId = 0;
+    int note = 0;
 
-    float* data;
-    ma_uint64 frameCount;
-    ma_uint32 channels;
-    ma_uint32 sampleRate;
-
-    ma_uint64 cursor;
-    ma_uint64 loopStart;
-    ma_uint64 loopEnd;
-    ma_uint64 fadeLength;
-
-    bool loopActive;
-    ma_uint64 fadeCursor;
+    std::vector<float> data;
+    uint64_t frameCount = 0;
+    uint32_t channels = 0;
+    uint32_t sampleRate = 44100;
+    bool loaded = false;
 };
 
-struct sampleSet {
-    ma_sound attack;
-    ma_sound sustain1;
-    ma_sound sustain2;
-    ma_sound release;
+struct sampleVoice {
+    sample* s = nullptr;
+    int note = -1;
+    float cursor = 0.0f;
+    float increment = 1.0f;
+    uint64_t loopStart = 0;
+    uint64_t loopEnd = 0;
+    uint32_t fadeLength = 0;
+    bool looping = false;
+    bool active = false;
+};
 
-    LoopingSample looping;
-
-    bool useFirst = true;
-    float crossfadePos = 0.0f;
-    float crossfadeStep = 1.0f / 4096.0f;
-
-    void startLoop();
-    void stopLoop();
-    void updateLooping();
+struct stereoSample {
+    float l = 0.0f;
+    float r = 0.0f;
 };
 
 class samplesModule : public module {
 public:
-	samplesModule(std::shared_ptr<voices> voiceManager, int maxPolyphony=1024);
-	~samplesModule();
-	void play(const noteSignal& signal, audioSignal& output) override;
-	void initEngine();
+    samplesModule(std::shared_ptr<voices> voiceManager, int maxPolyphony = 1024);
+    ~samplesModule();
 
-	const std::map<std::pair<int, int>, sampleSet*>& getSamples() const { return this->samples; }
+    void play(const noteSignal& signal, audioSignal& output) override;
+    void initEngine();
+    void initDevice();
+
+    const std::map<std::pair<int, int>, sample*>& getSamples() const { return samples; }
+    std::vector<sampleVoice>& getActiveVoices() { return activeVoices; }
+
+    std::mutex& getVoicesMutex() { return voicesMutex; }
+
 private:
-	std::map<std::pair<int, int>, sampleSet*> samples;
-	ma_engine engine;
+    std::map<std::pair<int, int>, sample*> samples;
+
+    ma_engine engine;
     ma_device device;
 
-	int maxPolyphony;
-};
+    int maxPolyphony;
 
+    std::vector<sampleVoice> newVoicesQueue;
+    std::mutex queueMutex;
+
+    std::vector<sampleVoice> activeVoices;
+    std::mutex voicesMutex;
+
+    std::thread voiceThread;
+    bool running = false;
+    void voiceManagerThread();
+
+    void getSample(sampleVoice& v, float& outL, float& outR);
+
+    static void audioCallback(ma_device* pDevice, void* pOutput, const void* pInput, ma_uint32 frameCount);
+};
