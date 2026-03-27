@@ -1,6 +1,8 @@
 from PySide6.QtWidgets import QMainWindow, QApplication, QCheckBox, QHBoxLayout, QVBoxLayout, QWidget, QLabel, QLineEdit
+from PySide6.QtCore import QTimer
 
 import sys
+import psutil
 
 class checkboxLabel(QWidget):
     def __init__(self, label_text:str, callback):
@@ -39,6 +41,11 @@ class textboxLabel(QWidget):
 class ui(QWidget):
     def __init__(self):
         super().__init__()
+
+        self.process = psutil.Process()
+        self.timer = QTimer()
+        self.timer.timeout.connect(self.update_stats)
+        self.timer.start(500) # To jest w ms
 
         layout = QHBoxLayout()
         self.setWindowTitle("Praca magisterska")
@@ -97,6 +104,22 @@ class ui(QWidget):
 
     def setDeviceName(self, value:str):
         self.deviceNameLabel.setText(value)
+
+    def get_cpu(self):
+        return self.process.cpu_percent(None)
+    
+    def get_ram(self):
+        return self.process.memory_info().rss / 1024 / 1024
+
+    def get_stats(self):
+        cpu = self.get_cpu()
+        ram = self.get_ram()
+        return cpu, ram
+    
+    def update_stats(self):
+        cpu, ram = self.get_stats()
+        self.cpuUsageText.setText(f"{cpu:.1f}")
+        self.ramUsageText.setText(f"{ram:.1f}")
 
 if __name__ == '__main__':
     app:QApplication = QApplication(sys.argv)
