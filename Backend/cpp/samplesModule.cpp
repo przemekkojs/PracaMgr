@@ -1,7 +1,6 @@
 #include "../h/samplesModule.h"
 
-samplesModule::samplesModule(std::shared_ptr<voices> voiceManager, int maxPolyphony) : module(std::move(voiceManager)), running(true)
-{
+samplesModule::samplesModule(std::shared_ptr<voices> voiceManager, int maxPolyphony) : module(std::move(voiceManager)), running(true) {
     std::cout << "Samples module init" << std::endl;
 
     this->maxPolyphony = maxPolyphony;
@@ -10,8 +9,7 @@ samplesModule::samplesModule(std::shared_ptr<voices> voiceManager, int maxPolyph
     this->voiceThread = std::thread([this]() { this->voiceManagerThread(); });
 }
 
-samplesModule::~samplesModule()
-{
+samplesModule::~samplesModule() {
     std::cout << "Destructor of Samples module" << std::endl;
 
     running = false;
@@ -57,6 +55,9 @@ void samplesModule::initEngine()
     int loadedSamples = 0;
     const int predictedSamplesCount = this->voiceManager->getVoices().size() * NUMBER_OF_NOTES;
 
+    ma_decoder decoder;
+    ma_decoder_config config = ma_decoder_config_init(ma_format_f32, 0, 0);
+
     for (const auto& v : this->voiceManager->getVoices()) {
         for (int note = LOWEST_NOTE; note < (LOWEST_NOTE + NUMBER_OF_NOTES); note++) {
             std::vector<std::string> paths = v.getSamplesPath(note);
@@ -66,18 +67,14 @@ void samplesModule::initEngine()
                 continue;
             }
 
-            std::string sustainPath = paths[1];
-
-            sample* s = new sample();
-            ma_decoder decoder;
-            ma_decoder_config config = ma_decoder_config_init(ma_format_f32, 0, 0);
+            std::string sustainPath = paths[1];            
 
             if (ma_decoder_init_file(sustainPath.c_str(), &config, &decoder) != MA_SUCCESS) {
                 std::cout << "Failed to open file: " << sustainPath << std::endl;
-                delete s;
                 continue;
             }
 
+            sample* s = new sample();
             ma_uint64 frameCount;
             ma_decoder_get_length_in_pcm_frames(&decoder, &frameCount);
 
@@ -109,8 +106,7 @@ void samplesModule::initEngine()
     std::cout << "Successfully loaded " << loadedSamples << " of " << predictedSamplesCount << " samples" << std::endl;
 }
 
-void samplesModule::play(const noteSignal& signal, audioSignal&)
-{
+void samplesModule::play(const noteSignal& signal, audioSignal&) {
     int note = signal.note;
 
     if (signal.on) {
@@ -137,8 +133,7 @@ void samplesModule::play(const noteSignal& signal, audioSignal&)
             newVoicesQueue.push_back(voice);
         }
     }
-    else
-    {
+    else {
         std::lock_guard<std::mutex> lock(voicesMutex);
 
         for (auto& v : activeVoices) {
@@ -152,8 +147,7 @@ void samplesModule::play(const noteSignal& signal, audioSignal&)
     }
 }
 
-void samplesModule::getSample(sampleVoice& v, float& outL, float& outR)
-{
+void samplesModule::getSample(sampleVoice& v, float& outL, float& outR) {
     outL = 0.0f;
     outR = 0.0f;
 
@@ -225,8 +219,7 @@ void samplesModule::getSample(sampleVoice& v, float& outL, float& outR)
     }
 }
 
-void samplesModule::audioCallback(ma_device* pDevice, void* pOutput, const void*, ma_uint32 frameCount)
-{
+void samplesModule::audioCallback(ma_device* pDevice, void* pOutput, const void*, ma_uint32 frameCount) {
     auto* module = (samplesModule*)pDevice->pUserData;
     float* out = (float*)pOutput;
 
@@ -252,10 +245,8 @@ void samplesModule::audioCallback(ma_device* pDevice, void* pOutput, const void*
     }
 }
 
-void samplesModule::voiceManagerThread()
-{
-    while (running)
-    {
+void samplesModule::voiceManagerThread() {
+    while (running) {
         {
             std::lock_guard<std::mutex> lock(queueMutex);
             if (!newVoicesQueue.empty())
