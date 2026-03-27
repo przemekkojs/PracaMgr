@@ -25,6 +25,7 @@ struct sample {
 
 struct sampleVoice {
     sample* s = nullptr;
+    int note = -1;
     float cursor = 0.0f;
     float increment = 1.0f;
     uint64_t loopStart = 0;

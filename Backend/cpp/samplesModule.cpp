@@ -113,25 +113,24 @@ void samplesModule::play(const noteSignal& signal, audioSignal&)
 {
     int note = signal.note;
 
-    if (signal.on)
-    {
-        for (const auto& v : this->voiceManager->getActiveVoices())
-        {
+    if (signal.on) {
+        for (const auto& v : this->voiceManager->getActiveVoices()) {
             int id = v.getId();
             auto it = samples.find({ id, note });
             if (it == samples.end()) continue;
 
             sample* s = it->second;
-            if (!s || !s->loaded) continue;
+            if (!s || !s->loaded) continue;            
 
             sampleVoice voice;
             voice.s = s;
+            voice.note = note;
             voice.cursor = 0.0f;
             voice.increment = 1.0f;
-            voice.loopStart = 0;
-            voice.loopEnd = s->frameCount;
-            voice.fadeLength = 0;
-            voice.looping = false;
+            voice.loopStart = s->sampleRate;
+            voice.loopEnd = s->frameCount - s->sampleRate;
+            voice.fadeLength = s->sampleRate;
+            voice.looping = true;
             voice.active = true;
 
             std::lock_guard<std::mutex> lock(queueMutex);
@@ -141,10 +140,11 @@ void samplesModule::play(const noteSignal& signal, audioSignal&)
     else
     {
         std::lock_guard<std::mutex> lock(voicesMutex);
-        for (auto& v : activeVoices)
-        {
-            if (!v.active) continue;
-            if (v.s == nullptr) continue;
+
+        for (auto& v : activeVoices) {
+            if (!v.active ||
+                v.s == nullptr)
+                continue;
 
             auto it = this->samples.find({ v.s->voiceId, v.s->note });
             v.active = false;
@@ -162,37 +162,67 @@ void samplesModule::getSample(sampleVoice& v, float& outL, float& outR)
 
     auto& data = v.s->data;
     uint32_t ch = v.s->channels;
-
     uint64_t i1 = (uint64_t)v.cursor;
-    uint64_t i2 = i1 + 1;
-    if (i2 >= v.s->frameCount) i2 = v.s->frameCount - 1;
     float frac = v.cursor - (float)i1;
 
-    uint64_t base1 = i1 * ch;
-    uint64_t base2 = i2 * ch;
+    auto sampleAt = [&](uint64_t idx, float& l, float& r) {
+        uint64_t iA = idx;
+        uint64_t iB = (idx + 1 < v.s->frameCount) ? idx + 1 : idx;
+        uint64_t baseA = iA * ch;
+        uint64_t baseB = iB * ch;
 
-    if (ch == 1)
-    {
-        float s1 = data[base1];
-        float s2 = data[base2];
-        float val = s1 * (1.0f - frac) + s2 * frac;
-        outL = val;
-        outR = val;
+        float f = frac;       
+
+        if (ch == 1) {
+            float s1 = data[baseA];
+            float s2 = data[baseB];
+            float val = s1 * (1.0f - f) + s2 * f;
+            l = val;
+            r = val;
+        }
+        else {
+            float l1 = data[baseA + 0];
+            float r1 = data[baseA + 1];
+            float l2 = data[baseB + 0];
+            float r2 = data[baseB + 1];
+
+            l = l1 * (1.0f - f) + l2 * f;
+            r = r1 * (1.0f - f) + r2 * f;
+        }
+    };
+
+    if (!v.looping || v.cursor < v.loopEnd - v.fadeLength) {
+        sampleAt(i1, outL, outR);
     }
-    else if (ch == 2)
-    {
-        float l1 = data[base1 + 0];
-        float r1 = data[base1 + 1];
-        float l2 = data[base2 + 0];
-        float r2 = data[base2 + 1];
+    else {
+        float fadePos = (v.cursor - (v.loopEnd - v.fadeLength)) / (float)v.fadeLength;
+        float l1, r1;
+        float l2, r2;       
 
-        outL = l1 * (1.0f - frac) + l2 * frac;
-        outR = r1 * (1.0f - frac) + r2 * frac;
+        uint64_t loopPos = (i1 - (v.loopEnd - v.fadeLength));
+
+        if (loopPos >= v.loopEnd - 1)
+            loopPos = v.loopStart;
+        
+        sampleAt(i1, l1, r1);
+        sampleAt(loopPos, l2, r2);
+
+        float w1 = 1.0f - fadePos;
+        float w2 = fadePos;
+
+        outL = l1 * w1 + l2 * w2;
+        outR = r1 * w1 + r2 * w2;
     }
 
     v.cursor += v.increment;
-    if (v.cursor >= v.s->frameCount)
+
+    if (v.looping && v.cursor >= v.loopEnd) {
+        v.cursor = v.loopStart + (v.cursor - v.loopEnd);
+    }
+
+    if (!v.looping && v.cursor >= v.s->frameCount) {
         v.active = false;
+    }
 }
 
 void samplesModule::audioCallback(ma_device* pDevice, void* pOutput, const void*, ma_uint32 frameCount)
@@ -233,6 +263,7 @@ void samplesModule::voiceManagerThread()
                 std::lock_guard<std::mutex> lock2(voicesMutex);
                 for (auto& v : newVoicesQueue)
                     activeVoices.push_back(v);
+
                 newVoicesQueue.clear();
             }
 
