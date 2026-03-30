@@ -140,7 +140,12 @@ void samplesModule::loadSamples() {
 }
 
 void samplesModule::unloadSamples() {
+    for (auto& [key, s] : samples) {
+        delete s;
+    }
 
+    newVoicesQueue.clear();
+    activeVoices.clear();
 }
 
 void samplesModule::play(const noteSignal& signal, audioSignal&) {

@@ -1,5 +1,7 @@
 #pragma once
 
+#include "../lib/RtMidi.h"
+
 #include "modelModule.h"
 #include "synthModule.h"
 #include "samplesModule.h"
@@ -10,6 +12,7 @@ public:
 	mainModule();
 
 	void play(noteSignal& MIDISignal);
+	noteSignal getSignal();
 
 	std::shared_ptr<voices> getVoicesManager() const { return this->voiceManager; }
 	const samplesModule& getSamplesModule() const { return this->samples; }
@@ -30,4 +33,5 @@ private:
 	samplesModule samples;
 	synthModule synth;
 	modelModule model;
+	RtMidiIn midiIn;
 };
