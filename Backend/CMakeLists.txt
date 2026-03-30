@@ -32,7 +32,8 @@ add_library(core
     cpp/signal.cpp
     cpp/synthModule.cpp
     cpp/voices.cpp
-    cpp/miniaudio_impl.cpp)
+    cpp/miniaudio_impl.cpp
+    cpp/metrices.cpp)
 
 target_include_directories(core PUBLIC h)
 
