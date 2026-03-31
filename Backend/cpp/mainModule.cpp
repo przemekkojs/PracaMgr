@@ -9,6 +9,10 @@ mainModule::mainModule() :
 	model(voiceManager) {
 	std::cout << "Initializing main module" << std::endl;
 
+	this->modelActive = false;
+	this->synthActive = false;
+	this->samplesActive = false;
+
 	unsigned int ports = midiIn.getPortCount();
 
 	if (ports == 0)
@@ -42,20 +46,43 @@ noteSignal mainModule::getSignal() {
 void mainModule::play(noteSignal& MIDISignal) {
 	std::cout << MIDISignal.toString() << std::endl;
 
+	bool synthActive = this->getSynthActive();
+	bool modelActive = this->getModelActive();
+	bool samplesActive = this->getSamplesActive();
+
+	if (MIDISignal.on) {
+		if (samplesActive) {
+			if (modelActive) {
+				this->bufferModel.clear();
+				this->bufferModel.start();
+			}
+
+			if (synthActive) {
+				this->bufferSynth.clear();
+				this->bufferSynth.start();
+			}
+		}
+	}
+	else {
+		this->bufferModel.stop();
+		this->bufferSynth.stop();
+
+		std::cout << this->bufferModel.getRefBuffer().size() << " " << this->bufferModel.getCompBuffer().size() << std::endl;
+		std::cout << this->bufferSynth.getRefBuffer().size() << " " << this->bufferSynth.getCompBuffer().size() << std::endl;
+	}
+
 	audioSignal synthSignal;
 	audioSignal modelSignal;
 	audioSignal samplesSignal;
 
-	if (this->getSynthActive())
+	if (synthActive)
 		this->synth.play(MIDISignal, synthSignal);
 
-	if (this->getModelActive())
+	if (modelActive)
 		this->model.play(MIDISignal, modelSignal);
 
-	if (this->getSamplesActive())
+	if (samplesActive)
 		this->samples.play(MIDISignal, samplesSignal);
-
-	// Tutaj jakoś ten sygnał trzeba będzie odtwarzać
 
 	this->bufferSynth.push(samplesSignal, synthSignal);
 	this->bufferModel.push(samplesSignal, modelSignal);

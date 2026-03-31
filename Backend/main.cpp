@@ -13,13 +13,10 @@ int main()
 {
 	mainModule instrument;
 
-	instrument.setModelActive(false);
+	instrument.setModelActive(true);
 	instrument.setSamplesActive(true);
-	instrument.setSynthActive(false);
+	instrument.setSynthActive(true);
 	instrument.getVoicesManager()->setActive(1, true);
-
-	instrument.getSamplesModule().unload();
-	instrument.getSamplesModule().load();
 
 	while (true) {
 		noteSignal signal = instrument.getSignal();

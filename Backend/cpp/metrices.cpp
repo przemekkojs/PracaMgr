@@ -10,10 +10,14 @@ metricBuffer::~metricBuffer() {
 }
 
 void metricBuffer::push(const audioSignal& ref, const audioSignal& comp) {
-    frame f{
-        ref.getMono(),
-        comp.getMono()
-    };
+    std::cout << "a";
+
+    if (!running.load(std::memory_order_relaxed))
+        return;
+
+    std::cout << "b";
+
+    frame f{ ref.getMono(), comp.getMono() };
 
     {
         std::lock_guard<std::mutex> lock(mtx);
@@ -66,4 +70,11 @@ void metricBuffer::stop() {
 
     if (workerThread.joinable())
         workerThread.join();
+}
+
+void metricBuffer::clear() {
+    std::lock_guard<std::mutex> lock(mtx);
+    queue.clear();
+    refSignalBuffer.clear();
+    compSignalBuffer.clear();
 }

@@ -109,9 +109,7 @@ void samplesModule::loadSamples() {
 
             sample* s = new sample();
             ma_uint64 frameCount;
-            ma_decoder_get_length_in_pcm_frames(&decoder, &frameCount);
-               
-            sample* s = new sample();
+            ma_decoder_get_length_in_pcm_frames(&decoder, &frameCount);               
             s->data.resize(frameCount * decoder.outputChannels);
 
             ma_uint64 framesRead;

@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <mutex>
+#include <iostream>
 
 #include "signal.h"
 // Implementacja samych metryk ju¿ z poziomu pythona
@@ -22,6 +23,7 @@ public:
 	void start();
 	void stop();
 	void worker();
+	void clear();
 
 	std::vector<float>& getRefBuffer() { return this->refSignalBuffer; }
 	std::vector<float>& getCompBuffer() { return this->compSignalBuffer; }
