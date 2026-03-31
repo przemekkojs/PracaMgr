@@ -48,20 +48,48 @@ noteSignal mainModule::getSignal() {
 }
 
 void mainModule::play(noteSignal& signal) {
-	if (this->getSynthActive())
+	bool synthActive = this->getSynthActive();
+	bool modelActive = this->getModelActive();
+	bool samplesActive = this->getSamplesActive();
+
+	if (signal.on) {
+		if (samplesActive) {
+			if (synthActive) {
+				bufferSynth.clear();
+				bufferSynth.start();
+			}
+
+			if (modelActive) {
+				bufferModel.clear();
+				bufferModel.start();
+			}
+		}
+	}
+	else {
+		bufferSynth.stop();
+		bufferModel.stop();
+
+		std::cout << bufferSynth.getRefBuffer().size() << " " << bufferSynth.getCompBuffer().size() << std::endl;
+		std::cout << bufferModel.getRefBuffer().size() << " " << bufferModel.getCompBuffer().size() << std::endl;
+	}
+
+	if (synthActive)
 		synth.play(signal);
 
-	if (this->getModelActive())
+	if (modelActive)
 		model.play(signal);
 
-	if (this->getSamplesActive())
+	if (samplesActive)
 		samples.play(signal);
 }
 
 void mainModule::processSample(float& outL, float& outR) {
-	float synthL = 0.0f, synthR = 0.0f;
-	float modelL = 0.0f, modelR = 0.0f;
-	float samplesL = 0.0f, samplesR = 0.0f;
+	float synthL = 0.0f;
+	float synthR = 0.0f;
+	float modelL = 0.0f;
+	float modelR = 0.0f;
+	float samplesL = 0.0f;
+	float samplesR = 0.0f;
 
 	if (this->getSynthActive())
 		synth.processSample(synthL, synthR);
