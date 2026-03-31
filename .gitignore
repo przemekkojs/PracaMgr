@@ -2,7 +2,7 @@
 out/
 *.wav
 
-*.ilk
-*.pdb
 *.pyd
+*.pdb
 *.pyi
+*.ilk

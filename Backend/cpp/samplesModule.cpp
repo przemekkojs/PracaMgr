@@ -1,12 +1,15 @@
 #include "../h/samplesModule.h"
 
-samplesModule::samplesModule(std::shared_ptr<voices> voiceManager, int maxPolyphony) : module(std::move(voiceManager)), running(true) {
+samplesModule::samplesModule(std::shared_ptr<voices> voiceManager, int maxPolyphony) : module(std::move(voiceManager))
+{
     std::cout << "Samples module init" << std::endl;
 
     this->maxPolyphony = maxPolyphony;
-    this->initEngine();
-    this->initDevice();
-    this->voiceThread = std::thread([this]() { this->voiceManagerThread(); });
+
+    this->initEngine();    
+    this->initDevice();    
+
+    std::cout << "Samples module initialised" << std::endl;
 }
 
 samplesModule::~samplesModule() {
@@ -26,6 +29,29 @@ samplesModule::~samplesModule() {
     std::cout << "Destructed" << std::endl;
 }
 
+void samplesModule::load() {
+    std::cout << "Loading..." << std::endl;
+
+    this->loadSamples();
+
+    this->running = true;
+    this->voiceThread = std::thread([this]() { this->voiceManagerThread(); });
+
+    std::cout << "Loaded" << std::endl;
+}
+
+void samplesModule::unload() {
+    std::cout << "Unloading..." << std::endl;
+
+    this->unloadSamples();
+
+    this->running = false;
+    if (voiceThread.joinable())
+        voiceThread.join();
+
+    std::cout << "Unloaded" << std::endl;
+}
+
 void samplesModule::initDevice() {
     std::cout << "Device init" << std::endl;
     ma_device_config deviceConfig = ma_device_config_init(ma_device_type_playback);
@@ -42,15 +68,22 @@ void samplesModule::initDevice() {
     if (ma_device_start(&device) != MA_SUCCESS) {
         throw std::runtime_error("Failed to start device");
     }
+
+    std::cout << "Device initialised" << std::endl;
 }
 
-void samplesModule::initEngine()
-{
-    std::cout << "Samples engine init" << std::endl;
+void samplesModule::initEngine() {
+    std::cout << "Engine init" << std::endl;
 
     if (ma_engine_init(NULL, &engine) != MA_SUCCESS) {
         throw std::runtime_error("Engine init failed!");
     }
+
+    std::cout << "Engine initialised";
+}
+
+void samplesModule::loadSamples() {
+    std::cout << "Loading samples" << std::endl;
 
     int loadedSamples = 0;
     const int predictedSamplesCount = this->voiceManager->getVoices().size() * NUMBER_OF_NOTES;
@@ -77,7 +110,8 @@ void samplesModule::initEngine()
             sample* s = new sample();
             ma_uint64 frameCount;
             ma_decoder_get_length_in_pcm_frames(&decoder, &frameCount);
-
+               
+            sample* s = new sample();
             s->data.resize(frameCount * decoder.outputChannels);
 
             ma_uint64 framesRead;
@@ -104,6 +138,15 @@ void samplesModule::initEngine()
 
     ma_engine_set_volume(&engine, 1.0f);
     std::cout << "Successfully loaded " << loadedSamples << " of " << predictedSamplesCount << " samples" << std::endl;
+}
+
+void samplesModule::unloadSamples() {
+    for (auto& [key, s] : samples) {
+        delete s;
+    }
+
+    newVoicesQueue.clear();
+    activeVoices.clear();
 }
 
 void samplesModule::play(const noteSignal& signal, audioSignal&) {

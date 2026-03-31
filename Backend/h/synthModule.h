@@ -8,4 +8,6 @@ public:
 	synthModule(std::shared_ptr<voices> voiceManager);
 
 	void play(const noteSignal& signal, audioSignal& output) override;
+	void load() override;
+	void unload() override;
 };

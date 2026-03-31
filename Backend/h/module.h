@@ -11,7 +11,13 @@ public:
 	virtual ~module() = default;
 
 	virtual void play(const noteSignal& signal, audioSignal& output) = 0;
+	virtual void unload() = 0;
+	virtual void load() = 0;
+
+	const bool isActive() const { return active; }
+	void setActive(bool value);
 
 protected:
 	std::shared_ptr<voices> voiceManager;
+	bool active;
 };

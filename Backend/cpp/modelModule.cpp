@@ -9,3 +9,11 @@ modelModule::modelModule(std::shared_ptr<voices> voiceManager) : module(std::mov
 void modelModule::play(const noteSignal& signal, audioSignal& output) {
 	std::cout << "Model signal" << std::endl;
 }
+
+void modelModule::load() {
+
+}
+
+void modelModule::unload() {
+
+}
