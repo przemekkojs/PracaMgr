@@ -4,6 +4,7 @@
 #include "synthModule.h"
 #include "samplesModule.h"
 #include "voices.h"
+#include "metrices.h"
 
 class mainModule {
 public:
@@ -15,6 +16,8 @@ public:
 	const samplesModule& getSamplesModule() const { return this->samples; }
 	const synthModule& getSynthModule() const { return this->synth; }
 	const modelModule& getModelModule() const { return this->model; }
+	const metricBuffer& getMetricBufferSynth() const { return this->bufferSynth; }
+	const metricBuffer& getMetricBufferModel() const { return this->bufferModel; }
 
 	void setSamplesActive(bool value) { this->samplesActive = value; }
 	void setSynthActive(bool value) { this->synthActive = value; }
@@ -29,6 +32,9 @@ private:
 	samplesModule samples;
 	synthModule synth;
 	modelModule model;
+
+	metricBuffer bufferSynth;
+	metricBuffer bufferModel;
 
 	bool samplesActive;
 	bool synthActive;

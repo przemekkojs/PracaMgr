@@ -1,6 +1,7 @@
 #pragma once
 
 #include "module.h"
+// Biblioteka "Signalsmith DSP" - niby header-only
 
 class synthModule : public module {
 public:
