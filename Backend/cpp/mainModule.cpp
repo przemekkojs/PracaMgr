@@ -34,3 +34,29 @@ void mainModule::play(noteSignal& MIDISignal) {
 
 	
 }
+
+void mainModule::startRecording(audioSignal& ref, audioSignal& comp) {
+	this->startRecordingModel(ref, comp);
+	this->startRecordingSynth(ref, comp);
+}
+
+void mainModule::startRecordingSynth(audioSignal& ref, audioSignal& comp) {
+	this->bufferSynth.record(ref, comp);
+}
+
+void mainModule::startRecordingModel(audioSignal& ref, audioSignal& comp) {
+	this->bufferModel.record(ref, comp);
+}
+
+void mainModule::stopRecording(audioSignal& ref, audioSignal& comp) {
+	this->stopRecordingModel(ref, comp);
+	this->stopRecordingSynth(ref, comp);
+}
+
+void mainModule::stopRecordingSynth(audioSignal& ref, audioSignal& comp) {
+	this->bufferSynth.stopRecording(ref, comp);
+}
+
+void mainModule::stopRecordingModel(audioSignal& ref, audioSignal& comp) {
+	this->bufferModel.stopRecording(ref, comp);
+}

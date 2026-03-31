@@ -16,10 +16,19 @@ public:
 	const samplesModule& getSamplesModule() const { return this->samples; }
 	const synthModule& getSynthModule() const { return this->synth; }
 	const modelModule& getModelModule() const { return this->model; }
+	const metricBuffer& getMetricBufferSynth() const { return this->bufferSynth; }
+	const metricBuffer& getMetricBufferModel() const { return this->bufferModel; }
 
 	void setSamplesActive(bool value) { this->samplesActive = value; }
 	void setSynthActive(bool value) { this->synthActive = value; }
 	void setModelActive(bool value) { this->modelActive = value; }
+
+	void startRecording(audioSignal& ref, audioSignal& comp);
+	void startRecordingSynth(audioSignal& ref, audioSignal& comp);
+	void startRecordingModel(audioSignal& ref, audioSignal& comp);
+	void stopRecording(audioSignal& ref, audioSignal& comp);
+	void stopRecordingSynth(audioSignal& ref, audioSignal& comp);
+	void stopRecordingModel(audioSignal& ref, audioSignal& comp);
 
 	const bool getSamplesActive() const { return samplesActive; }
 	const bool getSynthActive() const { return synthActive; }
@@ -31,8 +40,8 @@ private:
 	synthModule synth;
 	modelModule model;
 
-	metric1 m1;
-	metric2 m2;
+	metricBuffer bufferSynth;
+	metricBuffer bufferModel;
 
 	bool samplesActive;
 	bool synthActive;

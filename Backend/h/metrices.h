@@ -1,36 +1,24 @@
 #pragma once
 
+#include <vector>
+
 #include "signal.h"
+// Implementacja samych metryk ju¿ z poziomu pythona
 
-class metric {
+constexpr int RECORDING_RATE = 48000; // Dla ViSQOLAudio jest potrzebne 48000 Hz
+
+class metricBuffer {
 public:
-	metric();
-	~metric();
+	metricBuffer();
+	~metricBuffer();
 
-	virtual float value(audioSignal& refSignal, audioSignal& compSignal) = 0;
+	void record(audioSignal& ref, audioSignal& comp);
+	void stopRecording(audioSignal& ref, audioSignal& comp);
+
+	std::vector<float>& getRefBuffer() { return this->refSignalBuffer; }
+	std::vector<float>& getCompBuffer() { return this->compSignalBuffer; }
 
 protected:
-	
-};
-
-class metric1 : public metric {
-public:
-	metric1();
-	~metric1();
-
-	float value(audioSignal& refSignal, audioSignal& compSignal) override;
-
-private:
-
-};
-
-class metric2 : public metric {
-public:
-	metric2();
-	~metric2();
-
-	float value(audioSignal& refSignal, audioSignal& compSignal) override;
-
-private:
-
+	std::vector<float> refSignalBuffer;
+	std::vector<float> compSignalBuffer;
 };
