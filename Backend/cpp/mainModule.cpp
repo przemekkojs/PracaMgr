@@ -31,4 +31,6 @@ void mainModule::play(noteSignal& MIDISignal) {
 		this->samples.play(MIDISignal, samplesSignal);
 
 	// Tutaj jakoœ ten sygna³ trzeba bêdzie odtwarzaæ
+
+	
 }

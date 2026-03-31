@@ -4,6 +4,7 @@
 #include "synthModule.h"
 #include "samplesModule.h"
 #include "voices.h"
+#include "metrices.h"
 
 class mainModule {
 public:
@@ -29,6 +30,9 @@ private:
 	samplesModule samples;
 	synthModule synth;
 	modelModule model;
+
+	metric1 m1;
+	metric2 m2;
 
 	bool samplesActive;
 	bool synthActive;
