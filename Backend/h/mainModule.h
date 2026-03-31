@@ -15,9 +15,9 @@ public:
 	noteSignal getSignal();
 
 	std::shared_ptr<voices> getVoicesManager() const { return this->voiceManager; }
-	const samplesModule& getSamplesModule() const { return this->samples; }
-	const synthModule& getSynthModule() const { return this->synth; }
-	const modelModule& getModelModule() const { return this->model; }
+	samplesModule& getSamplesModule() { return this->samples; }
+	synthModule& getSynthModule() { return this->synth; }
+	modelModule& getModelModule() { return this->model; }
 
 	void setSamplesActive(bool value) { this->setModuleActive(value, this->samples); }
 	void setSynthActive(bool value) { this->setModuleActive(value, this->synth); }
