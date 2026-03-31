@@ -55,5 +55,8 @@ void mainModule::play(noteSignal& MIDISignal) {
 	if (this->getSamplesActive())
 		this->samples.play(MIDISignal, samplesSignal);
 
-	// Tutaj jakoœ ten sygna³ trzeba bêdzie analizowaæ
+	// Tutaj jakoÅ› ten sygnaÅ‚ trzeba bÄ™dzie odtwarzaÄ‡
+
+	this->bufferSynth.push(samplesSignal, synthSignal);
+	this->bufferModel.push(samplesSignal, modelSignal);
 }

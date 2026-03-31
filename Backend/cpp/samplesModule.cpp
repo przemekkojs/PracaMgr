@@ -12,8 +12,7 @@ samplesModule::samplesModule(std::shared_ptr<voices> voiceManager, int maxPolyph
     std::cout << "Samples module initialised" << std::endl;
 }
 
-samplesModule::~samplesModule()
-{
+samplesModule::~samplesModule() {
     std::cout << "Destructor of Samples module" << std::endl;
 
     running = false;
@@ -89,6 +88,9 @@ void samplesModule::loadSamples() {
     int loadedSamples = 0;
     const int predictedSamplesCount = this->voiceManager->getVoices().size() * NUMBER_OF_NOTES;
 
+    ma_decoder decoder;
+    ma_decoder_config config = ma_decoder_config_init(ma_format_f32, 0, 0);
+
     for (const auto& v : this->voiceManager->getVoices()) {
         for (int note = LOWEST_NOTE; note < (LOWEST_NOTE + NUMBER_OF_NOTES); note++) {
             std::vector<std::string> paths = v.getSamplesPath(note);
@@ -99,14 +101,13 @@ void samplesModule::loadSamples() {
             }
 
             std::string sustainPath = paths[1];            
-            ma_decoder decoder;
-            ma_decoder_config config = ma_decoder_config_init(ma_format_f32, 0, 0);
 
             if (ma_decoder_init_file(sustainPath.c_str(), &config, &decoder) != MA_SUCCESS) {
                 std::cout << "Failed to open file: " << sustainPath << std::endl;
                 continue;
             }
 
+            sample* s = new sample();
             ma_uint64 frameCount;
             ma_decoder_get_length_in_pcm_frames(&decoder, &frameCount);
                
@@ -175,8 +176,7 @@ void samplesModule::play(const noteSignal& signal, audioSignal&) {
             newVoicesQueue.push_back(voice);
         }
     }
-    else
-    {
+    else {
         std::lock_guard<std::mutex> lock(voicesMutex);
 
         for (auto& v : activeVoices) {
@@ -289,8 +289,7 @@ void samplesModule::audioCallback(ma_device* pDevice, void* pOutput, const void*
 }
 
 void samplesModule::voiceManagerThread() {
-    while (running)
-    {
+    while (running) {
         {
             std::lock_guard<std::mutex> lock(queueMutex);
             if (!newVoicesQueue.empty())

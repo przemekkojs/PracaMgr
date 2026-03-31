@@ -6,6 +6,7 @@
 #include "synthModule.h"
 #include "samplesModule.h"
 #include "voices.h"
+#include "metrices.h"
 
 class mainModule {
 public:
@@ -34,4 +35,11 @@ private:
 	synthModule synth;
 	modelModule model;
 	RtMidiIn midiIn;
+
+	metricBuffer bufferSynth;
+	metricBuffer bufferModel;
+
+	bool samplesActive;
+	bool synthActive;
+	bool modelActive;
 };

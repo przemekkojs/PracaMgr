@@ -24,6 +24,9 @@ target_link_libraries(rtmidi PUBLIC winmm)
 add_library(miniaudio INTERFACE)
 target_include_directories(miniaudio INTERFACE lib)
 
+add_library(signalsmith-dsp INTERFACE)
+target_include_directories(signalsmith-dsp INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
+
 add_library(core
     cpp/mainModule.cpp
     cpp/modelModule.cpp
@@ -32,7 +35,8 @@ add_library(core
     cpp/signal.cpp
     cpp/synthModule.cpp
     cpp/voices.cpp
-    cpp/miniaudio_impl.cpp)
+    cpp/miniaudio_impl.cpp
+    cpp/metrices.cpp)
 
 target_include_directories(core PUBLIC h)
 

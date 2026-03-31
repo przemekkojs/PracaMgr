@@ -29,11 +29,10 @@ struct audioSignal {
 	float left = 0.0f;
 	float right = 0.0f;
 
-	std::vector<float> buffer;
-
-	void clear() {
-		left = 0.0f;
-		right = 0.0f;
+	void clear();
+	
+	inline float getMono() const noexcept {
+		return (left + right) * 0.5f;
 	}
 };
 
