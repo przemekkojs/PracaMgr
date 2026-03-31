@@ -45,7 +45,8 @@ public:
     samplesModule(std::shared_ptr<voices> voiceManager, int maxPolyphony = 1024);
     ~samplesModule();
 
-    void play(const noteSignal& signal, audioSignal& output) override;
+    void play(const noteSignal& signal) override;
+    void processSample(float& outL, float& outR) override;
     void load() override;
     void unload() override;    
 
@@ -54,9 +55,6 @@ public:
     std::mutex& getVoicesMutex() { return voicesMutex; }
 private:
     std::map<std::pair<int, int>, sample*> samples;
-
-    ma_engine engine;
-    ma_device device;
 
     int maxPolyphony;
 
@@ -68,10 +66,7 @@ private:
     void voiceManagerThread();
     bool running;    
 
-    void getSample(sampleVoice& v, float& outL, float& outR);
-    static void audioCallback(ma_device* pDevice, void* pOutput, const void* pInput, ma_uint32 frameCount);
-    void initEngine();
-    void initDevice();
+    void getSample(sampleVoice& v, float& outL, float& outR);    
     void loadSamples();
     void unloadSamples();
 };

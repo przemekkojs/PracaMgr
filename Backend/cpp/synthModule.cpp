@@ -6,8 +6,12 @@ synthModule::synthModule(std::shared_ptr<voices> voiceManager) : module(std::mov
 	std::cout << "Synth module init" << std::endl;
 }
 
-void synthModule::play(const noteSignal& signal, audioSignal& output) {
+void synthModule::play(const noteSignal& signal) {
 	// std::cout << "Synth signal" << std::endl;
+}
+
+void synthModule::processSample(float& outL, float& outR) {
+
 }
 
 void synthModule::load() {

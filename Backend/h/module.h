@@ -10,7 +10,8 @@ public:
 	explicit module(std::shared_ptr<voices> voiceManager);
 	virtual ~module() = default;
 
-	virtual void play(const noteSignal& signal, audioSignal& output) = 0;
+	virtual void play(const noteSignal& signal) = 0;
+	virtual void processSample(float& outL, float& outR) = 0;
 	virtual void unload() = 0;
 	virtual void load() = 0;
 

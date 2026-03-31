@@ -10,12 +10,8 @@ metricBuffer::~metricBuffer() {
 }
 
 void metricBuffer::push(const audioSignal& ref, const audioSignal& comp) {
-    std::cout << "a";
-
     if (!running.load(std::memory_order_relaxed))
         return;
-
-    std::cout << "b";
 
     frame f{ ref.getMono(), comp.getMono() };
 
