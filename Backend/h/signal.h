@@ -44,11 +44,12 @@ struct ccSignal {
 struct audioSignal {
 	float left = 0.0f;
 	float right = 0.0f;
-	std::vector<float> buffer;
 
 	void clear();
-	void recordFrame();
-	void clearFrames();
+	
+	inline float getMono() const noexcept {
+		return (left + right) * 0.5f;
+	}
 };
 
 const audioSignal EMPTY_AUDIO_SIGNAL = audioSignal();

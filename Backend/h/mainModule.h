@@ -23,13 +23,6 @@ public:
 	void setSynthActive(bool value) { this->synthActive = value; }
 	void setModelActive(bool value) { this->modelActive = value; }
 
-	void startRecording(audioSignal& ref, audioSignal& comp);
-	void startRecordingSynth(audioSignal& ref, audioSignal& comp);
-	void startRecordingModel(audioSignal& ref, audioSignal& comp);
-	void stopRecording(audioSignal& ref, audioSignal& comp);
-	void stopRecordingSynth(audioSignal& ref, audioSignal& comp);
-	void stopRecordingModel(audioSignal& ref, audioSignal& comp);
-
 	const bool getSamplesActive() const { return samplesActive; }
 	const bool getSynthActive() const { return synthActive; }
 	const bool getModelActive() const { return modelActive; }
