@@ -4,10 +4,8 @@ samplesModule::samplesModule(std::shared_ptr<voices> voiceManager, int maxPolyph
 {
     std::cout << "Samples module init" << std::endl;
 
+    this->running = false;
     this->maxPolyphony = maxPolyphony;
-
-    this->initEngine();    
-    this->initDevice();    
 
     std::cout << "Samples module initialised" << std::endl;
 }
@@ -22,9 +20,6 @@ samplesModule::~samplesModule() {
     for (auto& [key, s] : samples) {
         delete s;
     }
-
-    ma_device_uninit(&device);
-    ma_engine_uninit(&engine);
 
     std::cout << "Destructed" << std::endl;
 }
@@ -50,36 +45,6 @@ void samplesModule::unload() {
         voiceThread.join();
 
     std::cout << "Unloaded" << std::endl;
-}
-
-void samplesModule::initDevice() {
-    std::cout << "Device init" << std::endl;
-    ma_device_config deviceConfig = ma_device_config_init(ma_device_type_playback);
-    deviceConfig.playback.format = ma_format_f32;
-    deviceConfig.playback.channels = 2;
-    deviceConfig.sampleRate = 44100;
-    deviceConfig.dataCallback = audioCallback;
-    deviceConfig.pUserData = this;
-
-    if (ma_device_init(NULL, &deviceConfig, &device) != MA_SUCCESS) {
-        throw std::runtime_error("Failed to init device");
-    }
-
-    if (ma_device_start(&device) != MA_SUCCESS) {
-        throw std::runtime_error("Failed to start device");
-    }
-
-    std::cout << "Device initialised" << std::endl;
-}
-
-void samplesModule::initEngine() {
-    std::cout << "Engine init" << std::endl;
-
-    if (ma_engine_init(NULL, &engine) != MA_SUCCESS) {
-        throw std::runtime_error("Engine init failed!");
-    }
-
-    std::cout << "Engine initialised";
 }
 
 void samplesModule::loadSamples() {
@@ -134,7 +99,6 @@ void samplesModule::loadSamples() {
         }
     }
 
-    ma_engine_set_volume(&engine, 1.0f);
     std::cout << "Successfully loaded " << loadedSamples << " of " << predictedSamplesCount << " samples" << std::endl;
 }
 
@@ -147,7 +111,7 @@ void samplesModule::unloadSamples() {
     activeVoices.clear();
 }
 
-void samplesModule::play(const noteSignal& signal, audioSignal&) {
+void samplesModule::play(const noteSignal& signal) {
     int note = signal.note;
 
     if (signal.on) {
@@ -260,32 +224,6 @@ void samplesModule::getSample(sampleVoice& v, float& outL, float& outR) {
     }
 }
 
-void samplesModule::audioCallback(ma_device* pDevice, void* pOutput, const void*, ma_uint32 frameCount) {
-    auto* module = (samplesModule*)pDevice->pUserData;
-    float* out = (float*)pOutput;
-
-    std::lock_guard<std::mutex> lock(module->voicesMutex);
-    auto& voices = module->getActiveVoices();
-
-    for (ma_uint32 i = 0; i < frameCount; i++)
-    {
-        float outL = 0.0f;
-        float outR = 0.0f;
-
-        for (auto& v : voices)
-        {
-            if (!v.active) continue;
-            float l, r;
-            module->getSample(v, l, r);
-            outL += l;
-            outR += r;
-        }
-
-        out[i * 2 + 0] = outL * 0.2f;
-        out[i * 2 + 1] = outR * 0.2f;
-    }
-}
-
 void samplesModule::voiceManagerThread() {
     while (running) {
         {
@@ -309,4 +247,24 @@ void samplesModule::voiceManagerThread() {
 
         std::this_thread::sleep_for(std::chrono::milliseconds(5));
     }
+}
+
+void samplesModule::processSample(float& outL, float& outR) {
+    outL = 0.0f;
+    outR = 0.0f;
+
+    std::lock_guard<std::mutex> lock(voicesMutex);
+
+    for (auto& v : activeVoices) {
+        if (!v.active) continue;
+
+        float l, r;
+        getSample(v, l, r);
+
+        outL += l;
+        outR += r;
+    }
+
+    outL *= 0.2f;
+    outR *= 0.2f;
 }
