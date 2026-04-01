@@ -1,4 +1,5 @@
 #include "../h/voices.h"
+#include <iostream>
 
 voice::voice(std::string name, int id, bool active) {
 	this->name = name;
@@ -7,25 +8,25 @@ voice::voice(std::string name, int id, bool active) {
 }
 
 std::string voice::getPath() const {
-	return VOICES_SAMPLES_PATH + this->name + "/";
+	return (VOICES_SAMPLES_PATH / this->name).lexically_normal().string();
 }
 
 std::vector<std::string> voice::getSamplesPath(int note) const {
-	std::string attackSample = this->getPath() + std::to_string(note) + ATTACK_POSTFIX + SAMPLE_FORMAT;
-	std::string mainSample = this->getPath() + std::to_string(note) + SAMPLE_FORMAT;
-	std::string releaseSample = this->getPath() + std::to_string(note) + RELEASE_POSTFIX + SAMPLE_FORMAT;
+	auto attackSample = this->getPath() + "/" + std::to_string(note) + ATTACK_POSTFIX + SAMPLE_FORMAT;
+	auto sustainSample = this->getPath() + "/" + std::to_string(note) + SAMPLE_FORMAT;
+	auto releaseSample = this->getPath() + "/" + std::to_string(note) + RELEASE_POSTFIX + SAMPLE_FORMAT;
 
-	std::vector<std::string> result({ attackSample, mainSample, releaseSample });
+	std::vector<std::string> result({ attackSample, sustainSample, releaseSample });
 	return result;
 }
-
 
 voices::voices() : container() {
 	this->loadVoices();
 }
 
 void voices::loadVoices() {
-	std::ifstream file(INSTRUMENT_PATH);
+	auto path = INSTRUMENT_PATH.lexically_normal();
+	std::ifstream file(path);
 	std::string line;
 
 	while (std::getline(file, line)) {
@@ -48,6 +49,8 @@ void voices::loadVoices() {
 }
 
 bool voices::setActive(int id, bool value) {
+	std::cout << id << " " << value << std::endl;
+
 	for (auto& v : this->container) {
 		if (v.getId() == id) {
 			v.setActive(value);

@@ -1,4 +1,4 @@
-from PySide6.QtWidgets import QMainWindow, QApplication, QCheckBox, QHBoxLayout, QVBoxLayout, QWidget, QLabel, QLineEdit, QPushButton
+from PySide6.QtWidgets import QApplication, QCheckBox, QHBoxLayout, QVBoxLayout, QWidget, QLabel, QLineEdit, QPushButton
 from PySide6.QtCore import QTimer
 
 import sys
@@ -58,11 +58,13 @@ def run_engine(pipe: Connection):
                 })
 
             elif msg["type"] == "SET_VOICE":
-                res:bool = organ.set_voice_active(msg["data"][0], msg["data"][1])
+                voiceId = msg["data"][0]
+                value = msg["data"][1]
+                res:bool = organ.set_voice_active(voiceId, value)
 
                 pipe.send({
                     "type": "SET_VOICE_RESULT",
-                    "data": (msg["data"][0], res)
+                    "data": (voiceId, res)
                 })
 
             elif msg['type'] == 'GET_DEVICE_NAME':
@@ -228,12 +230,13 @@ class ui(QWidget):
         self.setLayout(mainLayout)
 
     def initVoices(self):
-        voicesList:str = ["Prinzipal 8'", "Holzgedackt 8'", "Gambe 8'", "Trompete 8'", "Mixtur 3-4 fach."]
+        voicesList:list[str] = ["Prinzipal 8'", "Holzgedackt 8'", "Gambe 8'", "Trompete 8'", "Mixtur 3-4 fach."]
+        self.voiceBoxes:list[QCheckBox] = []
 
         for vId, v in enumerate(voicesList):
-            item:QCheckBox = QCheckBox(v)
-            item.clicked.connect(lambda _, vId=vId: self.boxSetVoiceActiveEvent(vId, item))
-            self.voicesBox.addWidget(item)
+            self.voiceBoxes.append(QCheckBox(v))
+            self.voicesBox.addWidget(self.voiceBoxes[-1])
+            self.voiceBoxes[-1].clicked.connect(lambda _, vId=vId: self.boxSetVoiceActiveEvent(vId))            
 
     def recordingTimeToString(self) -> str:
         fullSeconds:int = int(self.recordingTime // 1000)
@@ -330,8 +333,8 @@ class ui(QWidget):
             "data": (voiceId, value)
         })
 
-    def boxSetVoiceActiveEvent(self, voideId:int, box:QCheckBox):
-            self.setVoiceActive(voideId, box.isChecked())
+    def boxSetVoiceActiveEvent(self, voiceId:int):
+        self.setVoiceActive(voiceId + 1, self.voiceBoxes[voiceId].isChecked())
 
     def setSamplesActive(self):
         isChecked:bool = self.samplesActiveBox.cBox.isChecked()

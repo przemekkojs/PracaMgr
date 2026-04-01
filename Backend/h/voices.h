@@ -7,9 +7,12 @@
 #include <fstream>
 #include <sstream>
 #include <vector>
+#include <filesystem>
 
-const std::string VOICES_SAMPLES_PATH = "./local/samples/";
-const std::string INSTRUMENT_PATH = "./local/samples/instrument";
+const std::filesystem::path base = std::filesystem::path(__FILE__).parent_path().parent_path();
+
+const auto VOICES_SAMPLES_PATH = base / "./local/samples/";
+const auto INSTRUMENT_PATH = base / "./local/samples/instrument";
 const std::string SAMPLE_FORMAT = ".wav";
 
 const std::string RELEASE_POSTFIX = "_release";
