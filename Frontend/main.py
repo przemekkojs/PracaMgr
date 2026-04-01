@@ -6,6 +6,9 @@ import psutil
 import datetime
 import json
 
+sys.path.append("../Backend/python")
+import organ
+
 class checkboxLabel(QWidget):
     def __init__(self, label_text:str, callback):
         super().__init__()

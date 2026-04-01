@@ -20,19 +20,14 @@ public:
 	samplesModule& getSamplesModule() { return this->samples; }
 	synthModule& getSynthModule() { return this->synth; }
 	modelModule& getModelModule() { return this->model; }
+	const bool getSamplesActive() const { return this->samples.isActive(); }
+	const bool getSynthActive() const { return this->synth.isActive(); }
+	const bool getModelActive() const { return this->model.isActive(); }
 
 	void setSamplesActive(bool value) { this->setModuleActive(value, this->samples); }
 	void setSynthActive(bool value) { this->setModuleActive(value, this->synth); }
 	void setModelActive(bool value) { this->setModuleActive(value, this->model); }
-	void setModuleActive(bool value, module& m) { m.setActive(value); }
-	void processSample(float& outL, float& outR);
-	static void audioCallback(ma_device* device, void* output, const void* input, ma_uint32 frameCount);
-	void initDevice();
-	void initEngine();
-
-	const bool getSamplesActive() const { return this->samples.isActive(); }
-	const bool getSynthActive() const { return this->synth.isActive(); }
-	const bool getModelActive() const { return this->model.isActive(); }
+	void setModuleActive(bool value, module& m) { m.setActive(value); }	
 
 private:
 	std::shared_ptr<voices> voiceManager;
@@ -46,4 +41,9 @@ private:
 
 	metricBuffer bufferSynth;
 	metricBuffer bufferModel;
+
+	void processSample(float& outL, float& outR);
+	static void audioCallback(ma_device* device, void* output, const void* input, ma_uint32 frameCount);
+	void initDevice();
+	void initEngine();
 };
