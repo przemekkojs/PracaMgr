@@ -4,7 +4,7 @@ from PySide6.QtCore import QTimer
 import sys
 import psutil
 import datetime
-import math
+import json
 
 class checkboxLabel(QWidget):
     def __init__(self, label_text:str, callback):
@@ -48,6 +48,7 @@ class ui(QWidget):
         self.isRecording:bool = False
         self.ramUsageBuffer:list[float] = []
         self.cpuUsageBuffer:list[float] = []
+        self.logsBuffer:list[str] = []
 
         self.process = psutil.Process()
         self.timer = QTimer()
@@ -70,6 +71,22 @@ class ui(QWidget):
         self.startRecordingButton.clicked.connect(self.record)
         self.stopRecordingButton.clicked.connect(self.stopRecording)
         self.stopRecordingButton.setDisabled(True)
+
+        self.automaticTestBox:QVBoxLayout = QVBoxLayout()
+        self.automaticTestBox.addWidget(QLabel("Test automatyczny"))
+        self.startAutomaticTestButton:QPushButton = QPushButton("Start")
+        self.stopAutomaticTestButton:QPushButton = QPushButton("Stop")
+        buttonsBox:QHBoxLayout = QHBoxLayout()
+        self.stopAutomaticTestButton.setDisabled(True)
+        self.startAutomaticTestButton.clicked.connect(self.startAutomaticTest)
+        self.stopAutomaticTestButton.clicked.connect(self.stopAutomaticTest)
+        
+        for item in [self.startAutomaticTestButton, self.stopAutomaticTestButton]:
+            buttonsBox.addWidget(item)
+
+        self.automaticTestBox.addLayout(buttonsBox)
+        self.automaticTestLabel:QLabel = QLabel("Komunikaty...")
+        self.automaticTestBox.addWidget(self.automaticTestLabel)
 
         layout = QHBoxLayout()
         self.setWindowTitle("Praca magisterska")
@@ -115,6 +132,7 @@ class ui(QWidget):
         mainLayout:QVBoxLayout = QVBoxLayout()        
         mainLayout.addWidget(self.deviceNameLabel)
         mainLayout.addLayout(self.recordingBox)
+        mainLayout.addLayout(self.automaticTestBox)
         mainLayout.addLayout(layout)
         self.setLayout(mainLayout)
 
@@ -160,8 +178,47 @@ class ui(QWidget):
         self.stopRecordingButton.setDisabled(True)        
         self.recordingLabel.setText(f"Czas nagrania: {self.recordingTimeToString()}, Raport: {outputFileName}")
         
-        print(self.cpuUsageBuffer)
-        print(self.ramUsageBuffer)
+        data:dict = {
+            'ram' : self.ramUsageBuffer,
+            'cpu' : self.cpuUsageBuffer
+        }
+
+        self.saveOutput(outputFileName, data)
+    
+    def saveOutput(self, path:str, data:dict) -> None:
+        with open(path, 'w') as file:
+            json.dump(data, file)
+
+    def addLog(self, what:str) -> None:
+        now:str = datetime.datetime.strftime(datetime.datetime.now(), "%d-%m-%Y %H:%M:%S")
+        text:str = f"{now}\t{what}"
+        self.logsBuffer.append(text)
+        self.updateLogsLabel()
+
+    def updateLogsLabel(self) -> None:
+        self.automaticTestLabel.setText(self.logsBuffer[-1])
+
+    def startAutomaticTest(self):
+        self.logsBuffer.clear()
+        self.addLog("Rozpoczęto test automatyczny")
+
+        self.startAutomaticTestButton.setDisabled(True)
+        self.stopAutomaticTestButton.setDisabled(False)
+
+    def stopAutomaticTest(self):
+        self.addLog("Zakończono test automatyczny")
+        outputFileName:str = f"output/automatic-test-{datetime.datetime.strftime(datetime.datetime.now(), "%d-%m-%Y-%H-%M-%S")}.json"
+
+        self.startAutomaticTestButton.setDisabled(False)
+        self.stopAutomaticTestButton.setDisabled(True)
+
+        data:dict = {
+            'ram' : self.ramUsageBuffer,
+            'cpu' : self.cpuUsageBuffer,
+            'logs' : self.logsBuffer
+        }
+
+        self.saveOutput(outputFileName, data)
 
     def setSynthActive(self):
         isChecked:bool = self.synthActiveBox.cBox.isChecked()

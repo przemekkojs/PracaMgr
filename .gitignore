@@ -6,3 +6,5 @@ out/
 *.pdb
 *.pyi
 *.ilk
+
+Frontend/output/*.json
