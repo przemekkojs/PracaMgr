@@ -15,7 +15,7 @@ add_subdirectory(lib/pybind11)
 
 add_library(rtmidi STATIC
     lib/RtMidi.cpp
- "cpp/miniaudio_impl.cpp")
+    "cpp/miniaudio_impl.cpp")
 
 target_include_directories(rtmidi PUBLIC lib)
 target_compile_definitions(rtmidi PUBLIC __WINDOWS_MM__)
@@ -50,29 +50,29 @@ add_executable(Backend main.cpp)
 
 target_link_libraries(Backend PRIVATE core)
 
-pybind11_add_module(organ
+pybind11_add_module(organ_engine
     bindings/bindings.cpp
 )
 
-target_link_libraries(organ
+target_link_libraries(organ_engine
     PRIVATE
     core
     rtmidi
     Python3::Python
 )
 
-set_target_properties(organ PROPERTIES
+set_target_properties(organ_engine PROPERTIES
     LIBRARY_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/python"
 )
 
-add_custom_command(TARGET organ POST_BUILD
+add_custom_command(TARGET organ_engine POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E env
         PYTHONPATH=${CMAKE_SOURCE_DIR}/python
-        ${Python3_EXECUTABLE} -m pybind11_stubgen organ
+        ${Python3_EXECUTABLE} -m pybind11_stubgen organ_engine
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/python
 )
 
-add_custom_command(TARGET organ POST_BUILD
+add_custom_command(TARGET organ_engine POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E rm -rf ${CMAKE_BINARY_DIR}/local/samples
     COMMAND ${CMAKE_COMMAND} -E copy_directory
         ${CMAKE_SOURCE_DIR}/local/samples

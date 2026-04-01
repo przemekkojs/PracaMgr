@@ -10,9 +10,11 @@ void module::setActive(bool value) {
 	this->active = value;
 
 	if (value != prevValue) {
-		if (value)
-			this->load();
-		else
-			this->unload();
+		if (value) {
+			this->load();			
+		}			
+		else {
+			this->unload();			
+		}			
 	}
 }

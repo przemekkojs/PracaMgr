@@ -27,7 +27,17 @@ public:
 	void setSamplesActive(bool value) { this->setModuleActive(value, this->samples); }
 	void setSynthActive(bool value) { this->setModuleActive(value, this->synth); }
 	void setModelActive(bool value) { this->setModuleActive(value, this->model); }
-	void setModuleActive(bool value, module& m) { m.setActive(value); }	
+	void setModuleActive(bool value, module& m) { m.setActive(value); }
+
+	void loadModule(module& m) { m.load(); }
+	void unloadModule(module& m) { m.unload(); }
+	
+	void loadSamplesModule() { this->loadModule(this->samples); }
+	void unloadSamplesModule() { this->unloadModule(this->samples); }
+	void loadSynthModule() { this->loadModule(this->synth); }
+	void unloadSynthModule() { this->unloadModule(this->synth); }
+	void loadModelModule() { this->loadModule(this->model); }
+	void unloadModelModule() { this->unloadModule(this->model); }
 
 private:
 	std::shared_ptr<voices> voiceManager;

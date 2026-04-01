@@ -7,7 +7,7 @@
 
 namespace py = pybind11;
 
-PYBIND11_MODULE(organ, m) {
+PYBIND11_MODULE(organ_engine, m) {
     m.doc() = "Organ bindings";
 
     py::class_<noteSignal>(m, "NoteSignal")
@@ -34,7 +34,16 @@ PYBIND11_MODULE(organ, m) {
         .def("get_synth_active", &mainModule::getSynthActive)
         .def("get_model_active", &mainModule::getModelActive)
 
+        .def("load_samples_module", &mainModule::loadSamplesModule)
+        .def("unload_samples_module", &mainModule::unloadSamplesModule)
+        .def("load_model_module", &mainModule::loadModelModule)
+        .def("unload_model_module", &mainModule::unloadModelModule)
+        .def("load_synth_module", &mainModule::loadSynthModule)
+        .def("unload_synth_module", &mainModule::unloadSynthModule)
+
         .def("set_samples_active", &mainModule::setSamplesActive)
         .def("set_synth_active", &mainModule::setSynthActive)
         .def("set_model_active", &mainModule::setModelActive);
+
+    m.attr("EMPTY_NOTE_SIGNAL") = EMPTY_NOTE_SIGNAL;
 }

@@ -13,6 +13,10 @@ mainModule::mainModule() : voiceManager(std::make_shared<voices>()), samples(voi
 	this->initDevice();
 	this->initEngine();
 
+	this->setSamplesActive(false);
+	this->setModelActive(false);
+	this->setSynthActive(false);
+
 	int portIndex = 1;
 	midiIn.openPort(portIndex);
 }
