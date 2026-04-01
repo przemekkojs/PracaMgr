@@ -5,6 +5,8 @@
 mainModule::mainModule() : voiceManager(std::make_shared<voices>()), samples(voiceManager), synth(voiceManager), model(voiceManager) {
 	unsigned int ports = midiIn.getPortCount();
 
+	std::cout << "Dzialam ;-)" << std::endl;
+
 	if (ports == 0)
 		throw new std::exception("No devices active");
 
