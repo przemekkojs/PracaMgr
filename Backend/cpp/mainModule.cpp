@@ -2,29 +2,17 @@
 
 #include <iostream>
 
-mainModule::mainModule() :
-	voiceManager(std::make_shared<voices>()),
-	samples(voiceManager),
-	synth(voiceManager),
-	model(voiceManager) {
-	std::cout << "Initializing main module" << std::endl;
-
-	this->initDevice();
-	this->initEngine();
-
+mainModule::mainModule() : voiceManager(std::make_shared<voices>()), samples(voiceManager), synth(voiceManager), model(voiceManager) {
 	unsigned int ports = midiIn.getPortCount();
 
 	if (ports == 0)
 		throw new std::exception("No devices active");
 
-	for (unsigned int portIndex = 0; portIndex < ports; portIndex++) {
-		std::cout << portIndex << " " << midiIn.getPortName(portIndex) << std::endl;
-	}
+	this->initDevice();
+	this->initEngine();
 
 	int portIndex = 1;
 	midiIn.openPort(portIndex);
-
-	std::cout << "Main module initialized." << std::endl;
 }
 
 mainModule::~mainModule() {
@@ -68,9 +56,6 @@ void mainModule::play(noteSignal& signal) {
 	else {
 		bufferSynth.stop();
 		bufferModel.stop();
-
-		std::cout << bufferSynth.getRefBuffer().size() << " " << bufferSynth.getCompBuffer().size() << std::endl;
-		std::cout << bufferModel.getRefBuffer().size() << " " << bufferModel.getCompBuffer().size() << std::endl;
 	}
 
 	if (synthActive)
@@ -127,13 +112,11 @@ void mainModule::audioCallback(ma_device* device, void* output, const void*, ma_
 }
 
 void mainModule::initDevice() {
-	std::cout << "Device init" << std::endl;
-
 	ma_device_config config = ma_device_config_init(ma_device_type_playback);
 
 	config.playback.format = ma_format_f32;
 	config.playback.channels = 2;
-	config.sampleRate = 44100;
+	config.sampleRate = 48000;
 	config.dataCallback = audioCallback;
 	config.pUserData = this;
 
@@ -142,16 +125,10 @@ void mainModule::initDevice() {
 
 	if (ma_device_start(&device) != MA_SUCCESS)
 		throw std::runtime_error("Device start failed");
-
-	std::cout << "Device initialised" << std::endl;
 }
 
 void mainModule::initEngine() {
-	std::cout << "Engine init" << std::endl;
-
 	if (ma_engine_init(NULL, &engine) != MA_SUCCESS) {
 		throw std::runtime_error("Engine init failed!");
 	}
-
-	std::cout << "Engine initialised";
 }

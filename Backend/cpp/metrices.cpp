@@ -5,9 +5,7 @@ metricBuffer::metricBuffer() :
 	compSignalBuffer(),
     queue() { }
 
-metricBuffer::~metricBuffer() {
-
-}
+metricBuffer::~metricBuffer() { }
 
 void metricBuffer::push(const audioSignal& ref, const audioSignal& comp) {
     if (!running.load(std::memory_order_relaxed))

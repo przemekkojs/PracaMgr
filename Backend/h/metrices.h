@@ -2,12 +2,8 @@
 
 #include <vector>
 #include <mutex>
-#include <iostream>
 
 #include "signal.h"
-// Implementacja samych metryk ju¿ z poziomu pythona
-
-constexpr int RECORDING_RATE = 48000; // Dla ViSQOLAudio jest potrzebne 48000 Hz
 
 struct frame {
 	float ref;

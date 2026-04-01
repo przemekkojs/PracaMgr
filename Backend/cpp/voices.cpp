@@ -21,7 +21,6 @@ std::vector<std::string> voice::getSamplesPath(int note) const {
 
 
 voices::voices() : container() {
-	std::cout << "Voices manager init" << std::endl;
 	this->loadVoices();
 }
 
@@ -49,8 +48,6 @@ void voices::loadVoices() {
 }
 
 bool voices::setActive(int id, bool value) {
-	std::cout << "Voice " << id << ": " << value << std::endl;
-
 	for (auto& v : this->container) {
 		if (v.getId() == id) {
 			v.setActive(value);

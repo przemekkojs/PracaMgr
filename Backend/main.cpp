@@ -5,10 +5,6 @@
 #include <vector>
 #include <iostream>
 
-// To będzie klasa tylko na TESTY
-// Uruchamianie będzie z poziomu
-// pythona, po połączeniu modułów
-
 int main()
 {
 	mainModule instrument;

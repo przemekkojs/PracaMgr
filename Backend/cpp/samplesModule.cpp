@@ -2,17 +2,11 @@
 
 samplesModule::samplesModule(std::shared_ptr<voices> voiceManager, int maxPolyphony) : module(std::move(voiceManager))
 {
-    std::cout << "Samples module init" << std::endl;
-
     this->running = false;
     this->maxPolyphony = maxPolyphony;
-
-    std::cout << "Samples module initialised" << std::endl;
 }
 
 samplesModule::~samplesModule() {
-    std::cout << "Destructor of Samples module" << std::endl;
-
     running = false;
     if (voiceThread.joinable())
         voiceThread.join();
@@ -20,36 +14,24 @@ samplesModule::~samplesModule() {
     for (auto& [key, s] : samples) {
         delete s;
     }
-
-    std::cout << "Destructed" << std::endl;
 }
 
 void samplesModule::load() {
-    std::cout << "Loading..." << std::endl;
-
     this->loadSamples();
 
     this->running = true;
     this->voiceThread = std::thread([this]() { this->voiceManagerThread(); });
-
-    std::cout << "Loaded" << std::endl;
 }
 
 void samplesModule::unload() {
-    std::cout << "Unloading..." << std::endl;
-
     this->unloadSamples();
 
     this->running = false;
     if (voiceThread.joinable())
         voiceThread.join();
-
-    std::cout << "Unloaded" << std::endl;
 }
 
 void samplesModule::loadSamples() {
-    std::cout << "Loading samples" << std::endl;
-
     int loadedSamples = 0;
     const int predictedSamplesCount = this->voiceManager->getVoices().size() * NUMBER_OF_NOTES;
 
@@ -61,14 +43,12 @@ void samplesModule::loadSamples() {
             std::vector<std::string> paths = v.getSamplesPath(note);
 
             if (paths.size() != 3) {
-                std::cout << "Unable to load samples for note " << note << std::endl;
                 continue;
             }
 
             std::string sustainPath = paths[1];            
 
             if (ma_decoder_init_file(sustainPath.c_str(), &config, &decoder) != MA_SUCCESS) {
-                std::cout << "Failed to open file: " << sustainPath << std::endl;
                 continue;
             }
 
@@ -76,10 +56,9 @@ void samplesModule::loadSamples() {
             ma_uint64 frameCount;
             ma_decoder_get_length_in_pcm_frames(&decoder, &frameCount);               
             s->data.resize(frameCount * decoder.outputChannels);
-
             ma_uint64 framesRead;
+
             if (ma_decoder_read_pcm_frames(&decoder, s->data.data(), frameCount, &framesRead) != MA_SUCCESS) {
-                std::cout << "Failed to read file: " << sustainPath << std::endl;
                 ma_decoder_uninit(&decoder);
                 delete s;
                 continue;
@@ -98,8 +77,6 @@ void samplesModule::loadSamples() {
             loadedSamples++;
         }
     }
-
-    std::cout << "Successfully loaded " << loadedSamples << " of " << predictedSamplesCount << " samples" << std::endl;
 }
 
 void samplesModule::unloadSamples() {

@@ -1,7 +1,6 @@
 #pragma once
 
 #include "module.h"
-// Tutaj chyba bêdzie czysty C++
 
 class modelModule : public module {
 public:
