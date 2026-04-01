@@ -43,7 +43,11 @@ PYBIND11_MODULE(organ_engine, m) {
 
         .def("set_samples_active", &mainModule::setSamplesActive)
         .def("set_synth_active", &mainModule::setSynthActive)
-        .def("set_model_active", &mainModule::setModelActive);
+        .def("set_model_active", &mainModule::setModelActive)
+
+        .def("set_voice_active", &mainModule::setVoiceActive)
+
+        .def("get_midi_device_name", &mainModule::getMidiDeviceName);
 
     m.attr("EMPTY_NOTE_SIGNAL") = EMPTY_NOTE_SIGNAL;
 }

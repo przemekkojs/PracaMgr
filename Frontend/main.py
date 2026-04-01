@@ -10,49 +10,71 @@ from multiprocessing.connection import Connection
 from multiprocessing import Process, Pipe
 
 sys.path.append("../Backend/python")
-from organ_engine import MainModule, NoteSignal
+from organ_engine import MainModule, NoteSignal, EMPTY_NOTE_SIGNAL
 
 def run_engine(pipe: Connection):
-    organ = MainModule()
+    organ:MainModule = MainModule()
+    running:bool = True
 
-    while True:
-        msg = pipe.recv()
+    while running:
+        while pipe.poll():
+            msg = pipe.recv()
 
-        if msg["type"] == "STOP":
-            break
+            if msg["type"] == "STOP":
+                running = False
+                break
 
-        elif msg["type"] == "NOTE":
-            organ.play(msg["data"])
+            elif msg["type"] == "NOTE":
+                organ.play(msg["data"])
 
-        elif msg["type"] == "SET_SAMPLES":
-            organ.set_samples_active(msg["data"])
+            elif msg["type"] == "SET_SAMPLES":
+                organ.set_samples_active(msg["data"])
 
-        elif msg["type"] == "SET_SYNTH":
-            organ.set_synth_active(msg["data"])
+            elif msg["type"] == "SET_SYNTH":
+                organ.set_synth_active(msg["data"])
 
-        elif msg["type"] == "SET_MODEL":
-            organ.set_model_active(msg["data"])
+            elif msg["type"] == "SET_MODEL":
+                organ.set_model_active(msg["data"])
 
-        elif msg["type"] == "GET_SYNTH_ACTIVE":
-            pipe.send({
-                "type": "GET_SYNTH_ACTIVE_RESULT",
-                "id": msg["id"],
-                "value": organ.get_synth_active()
-            })
+            elif msg["type"] == "GET_SYNTH_ACTIVE":
+                pipe.send({
+                    "type": "GET_SYNTH_ACTIVE_RESULT",
+                    "id": msg["id"],
+                    "value": organ.get_synth_active()
+                })
 
-        elif msg["type"] == "GET_SAMPLES_ACTIVE":
-            pipe.send({
-                "type": "GET_SAMPLES_ACTIVE_RESULT",
-                "id": msg["id"],
-                "value": organ.get_samples_active()
-            })
+            elif msg["type"] == "GET_SAMPLES_ACTIVE":
+                pipe.send({
+                    "type": "GET_SAMPLES_ACTIVE_RESULT",
+                    "id": msg["id"],
+                    "value": organ.get_samples_active()
+                })
 
-        elif msg["type"] == "GET_MODEL_ACTIVE":
-            pipe.send({
-                "type": "GET_MODEL_ACTIVE_RESULT",
-                "id": msg["id"],
-                "value": organ.get_model_active()
-            })
+            elif msg["type"] == "GET_MODEL_ACTIVE":
+                pipe.send({
+                    "type": "GET_MODEL_ACTIVE_RESULT",
+                    "id": msg["id"],
+                    "value": organ.get_model_active()
+                })
+
+            elif msg["type"] == "SET_VOICE":
+                res:bool = organ.set_voice_active(msg["data"][0], msg["data"][1])
+
+                pipe.send({
+                    "type": "SET_VOICE_RESULT",
+                    "data": (msg["data"][0], res)
+                })
+
+            elif msg['type'] == 'GET_DEVICE_NAME':
+                pipe.send({
+                    "type": "GET_DEVICE_NAME_RESULT",
+                    "value": organ.get_midi_device_name()
+                })
+        
+        s:NoteSignal = organ.get_signal()
+
+        if s != EMPTY_NOTE_SIGNAL:
+            organ.play(s)
         
 
 class checkboxLabel(QWidget):
@@ -107,13 +129,17 @@ class ui(QWidget):
         self.cpuUsageBuffer:list[float] = []
         self.logsBuffer:list[str] = []
 
-        self.timer = QTimer()
-        self.timer.timeout.connect(self.update_stats)
-        self.timer.start(500) # To jest w ms
-        self.timer.timeout.connect(self.poll_engine)
+        self.ui_timer = QTimer()
+        self.ui_timer.timeout.connect(self.update_stats)
+        self.ui_timer.start(500)
+
+        self.engine_timer = QTimer()
+        self.engine_timer.timeout.connect(self.poll_engine)
+        self.engine_timer.start(10)
 
         self.init_ui()
         self.initVoices()
+        self.request_device_name()
 
     def init_ui(self):
         self.voicesBox:QVBoxLayout = QVBoxLayout()
@@ -205,8 +231,8 @@ class ui(QWidget):
         voicesList:str = ["Prinzipal 8'", "Holzgedackt 8'", "Gambe 8'", "Trompete 8'", "Mixtur 3-4 fach."]
 
         for vId, v in enumerate(voicesList):
-            item:QPushButton = QPushButton(v)
-            item.clicked.connect(lambda _, vId=vId: self.setVoiceActive(vId + 1))
+            item:QCheckBox = QCheckBox(v)
+            item.clicked.connect(lambda _, vId=vId: self.boxSetVoiceActiveEvent(vId, item))
             self.voicesBox.addWidget(item)
 
     def recordingTimeToString(self) -> str:
@@ -298,6 +324,15 @@ class ui(QWidget):
             "data": isChecked
         })
 
+    def setVoiceActive(self, voiceId:int, value:bool):
+        self.parent_conn.send({
+            "type": "SET_VOICE",
+            "data": (voiceId, value)
+        })
+
+    def boxSetVoiceActiveEvent(self, voideId:int, box:QCheckBox):
+            self.setVoiceActive(voideId, box.isChecked())
+
     def setSamplesActive(self):
         isChecked:bool = self.samplesActiveBox.cBox.isChecked()
 
@@ -339,6 +374,17 @@ class ui(QWidget):
 
         self.pending_requests[rid] = "GET_SAMPLES_ACTIVE"
 
+    def request_device_name(self):
+        self.request_id += 1
+        rid = self.request_id
+
+        self.parent_conn.send({
+            "type": "GET_DEVICE_NAME",
+            "id": rid
+        })
+
+        self.pending_requests[rid] = "GET_DEVICE_NAME"
+
     def poll_engine(self):
         while self.parent_conn.poll():
             msg = self.parent_conn.recv()
@@ -350,22 +396,33 @@ class ui(QWidget):
                 self.synthActiveBox.cBox.setChecked(value)
                 del self.pending_requests[rid]
 
-            if msg["type"] == "GET_SAMPLES_ACTIVE_RESULT":
+            elif msg["type"] == "GET_SAMPLES_ACTIVE_RESULT":
                 rid = msg["id"]
                 value = msg["value"]
 
                 self.samplesActiveBox.cBox.setChecked(value)
                 del self.pending_requests[rid]
 
-            if msg["type"] == "GET_MODEL_ACTIVE_RESULT":
+            elif msg["type"] == "GET_MODEL_ACTIVE_RESULT":
                 rid = msg["id"]
                 value = msg["value"]
 
                 self.modelActiveBox.cBox.setChecked(value)
                 del self.pending_requests[rid]
 
-    def setVoiceActive(self, voiceId:int):
-        print(voiceId)
+            elif msg["type"] == "SET_VOICE_RESULT":
+                voiceId, value = msg["data"]
+
+                for i in range(self.voicesBox.count()):
+                    item:checkboxLabel = self.voicesBox.itemAt(i).widget()
+
+                    if isinstance(item, checkboxLabel):
+                        if i == voiceId:
+                            item.cBox.setChecked(value)
+                            break
+
+            elif msg['type'] == 'GET_DEVICE_NAME_RESULT':
+                self.deviceNameLabel.setText(msg['value'])
 
     def setDeviceName(self, value:str):
         self.deviceNameLabel.setText(value)
@@ -393,10 +450,18 @@ class ui(QWidget):
             self.recordingLabel.setText(self.recordingTimeToString())
 
     def closeEvent(self, event):
-        self.timer.stop()
+        self.ui_timer.stop()
+        self.engine_timer.stop()
+
         self.parent_conn.send({"type": "STOP"})
         self.engine_process.join()
         event.accept()
+
+    def send_midi(self, note):
+        self.parent_conn.send({
+            "type": "MIDI",
+            "data": note
+        })
 
 if __name__ == '__main__':
     app:QApplication = QApplication(sys.argv)

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <string>
+
 #include "../lib/RtMidi.h"
 
 #include "modelModule.h"
@@ -39,6 +41,10 @@ public:
 	void loadModelModule() { this->loadModule(this->model); }
 	void unloadModelModule() { this->unloadModule(this->model); }
 
+	bool setVoiceActive(int id, bool value) { return this->voiceManager->setActive(id, value); }
+
+	std::string getMidiDeviceName() { return this->midiIn.getPortName(MIDI_PORT_ID); }
+
 private:
 	std::shared_ptr<voices> voiceManager;
 	samplesModule samples;
@@ -56,4 +62,6 @@ private:
 	static void audioCallback(ma_device* device, void* output, const void* input, ma_uint32 frameCount);
 	void initDevice();
 	void initEngine();
+
+	const int MIDI_PORT_ID = 1;
 };

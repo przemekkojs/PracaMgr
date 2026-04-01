@@ -5,20 +5,17 @@
 mainModule::mainModule() : voiceManager(std::make_shared<voices>()), samples(voiceManager), synth(voiceManager), model(voiceManager) {
 	unsigned int ports = midiIn.getPortCount();
 
-	std::cout << "Dzialam ;-)" << std::endl;
-
 	if (ports == 0)
 		throw new std::exception("No devices active");
+
+	midiIn.openPort(MIDI_PORT_ID);
 
 	this->initDevice();
 	this->initEngine();
 
 	this->setSamplesActive(false);
 	this->setModelActive(false);
-	this->setSynthActive(false);
-
-	int portIndex = 1;
-	midiIn.openPort(portIndex);
+	this->setSynthActive(false);	
 }
 
 mainModule::~mainModule() {
