@@ -51,7 +51,6 @@ void samplesModule::loadSamples() {
             std::string sustainPath = paths[1];            
 
             if (ma_decoder_init_file(sustainPath.c_str(), &config, &decoder) != MA_SUCCESS) {
-                std::cout << "File loading error: " << sustainPath << std::endl;
                 continue;
             }
 
@@ -78,12 +77,8 @@ void samplesModule::loadSamples() {
 
             samples[{v.getId(), note}] = s;
             loadedSamples++;
-
-            std::cout << "Loaded: " << sustainPath << std::endl;
         }
     }
-
-    std::cout << loadedSamples << "/" << predictedSamplesCount << std::endl;
 }
 
 void samplesModule::unloadSamples() {
