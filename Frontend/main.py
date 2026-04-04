@@ -72,6 +72,12 @@ def run_engine(pipe: Connection):
                     "type": "GET_DEVICE_NAME_RESULT",
                     "value": organ.get_midi_device_name()
                 })
+
+            elif msg['type'] == 'GET_VOICES_NAMES':
+                pipe.send({
+                    "type": "GET_VOICES_NAMES_RESULT",
+                    "value": organ.get_voices_names()
+                })
         
         s:NoteSignal = organ.get_signal()
 
@@ -130,6 +136,8 @@ class ui(QWidget):
         self.ramUsageBuffer:list[float] = []
         self.cpuUsageBuffer:list[float] = []
         self.logsBuffer:list[str] = []
+        self.voicesNames:dict[int, str] = {}
+        self.voiceBoxes:dict[int, QCheckBox] = {}
 
         self.ui_timer = QTimer()
         self.ui_timer.timeout.connect(self.update_stats)
@@ -229,14 +237,8 @@ class ui(QWidget):
         mainLayout.addLayout(layout)
         self.setLayout(mainLayout)
 
-    def initVoices(self):
-        voicesList:list[str] = ["Prinzipal 8'", "Holzgedackt 8'", "Gambe 8'", "Trompete 8'", "Mixtur 3-4 fach."]
-        self.voiceBoxes:list[QCheckBox] = []
-
-        for vId, v in enumerate(voicesList):
-            self.voiceBoxes.append(QCheckBox(v))
-            self.voicesBox.addWidget(self.voiceBoxes[-1])
-            self.voiceBoxes[-1].clicked.connect(lambda _, vId=vId: self.boxSetVoiceActiveEvent(vId))            
+    def initVoices(self):        
+        self.request_voices_names()        
 
     def recordingTimeToString(self) -> str:
         fullSeconds:int = int(self.recordingTime // 1000)
@@ -328,13 +330,15 @@ class ui(QWidget):
         })
 
     def setVoiceActive(self, voiceId:int, value:bool):
+        print(voiceId)
+
         self.parent_conn.send({
             "type": "SET_VOICE",
             "data": (voiceId, value)
         })
 
     def boxSetVoiceActiveEvent(self, voiceId:int):
-        self.setVoiceActive(voiceId + 1, self.voiceBoxes[voiceId].isChecked())
+        self.setVoiceActive(voiceId, self.voiceBoxes[voiceId].isChecked())
 
     def setSamplesActive(self):
         isChecked:bool = self.samplesActiveBox.cBox.isChecked()
@@ -388,6 +392,17 @@ class ui(QWidget):
 
         self.pending_requests[rid] = "GET_DEVICE_NAME"
 
+    def request_voices_names(self):
+        self.request_id += 1
+        rid = self.request_id
+
+        self.parent_conn.send({
+            "type": "GET_VOICES_NAMES",
+            "id": rid
+        })
+
+        self.pending_requests[rid] = "GET_VOICES_NAMES"
+
     def poll_engine(self):
         while self.parent_conn.poll():
             msg = self.parent_conn.recv()
@@ -426,6 +441,18 @@ class ui(QWidget):
 
             elif msg['type'] == 'GET_DEVICE_NAME_RESULT':
                 self.deviceNameLabel.setText(msg['value'])
+
+            elif msg['type'] == 'GET_VOICES_NAMES_RESULT':
+                self.voicesNames = msg['value']
+
+                self.voiceBoxes = {}
+
+                for k in self.voicesNames.keys():
+                    v = self.voicesNames[k]
+                    toAppend:QCheckBox = QCheckBox(v)
+                    self.voiceBoxes[k] = toAppend
+                    self.voicesBox.addWidget(toAppend)
+                    toAppend.clicked.connect(lambda state, x=k: self.boxSetVoiceActiveEvent(x))      
 
     def setDeviceName(self, value:str):
         self.deviceNameLabel.setText(value)

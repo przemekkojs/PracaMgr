@@ -1,31 +1,47 @@
 #pragma once
 
+#include <map>
+
 #include "module.h"
+#include "voices.h"
 
-struct SynthVoice {
-    bool active = false;
+struct onePole {
+    float a = 0.0f;
+    float z = 0.0f;
+
+    void setLowpass(float cutoff) { a = cutoff; }
+
+    float process(float x) {
+        z = (1.0f - a) * x + a * z;
+        return z;
+    }
+};
+
+struct synthVoice {
+    bool playing = false;
+    bool phaseReset = false;
     float freq = 440.0f;
-    float phase = 0.0f;
+    float feedback = 0.0f;
+    float env = 0.0f;
+    float jetEnv = 0.0f;
+    float sampleRate = module::SAMPLE_RATE;
+    float lastPipe = 0.0f;
 
-    void noteOn(int midiNote) {
-        freq = 440.0f * powf(2.0f, (midiNote - 69) / 12.0f);
-        active = true;
-    }
+    signalsmith::delay::Delay<float> pipeDelay;
+    signalsmith::delay::Delay<float> jetDelay;
+    
 
-    void noteOff() {
-        active = false;
-    }
+    onePole lossFilter;
+    pipeParams params;
 
-    float process(float sampleRate) {
-        if (!active) return 0.0f;
+    synthVoice(const pipeParams& p);
 
-        float sample = sinf(phase * 2.0f * 3.14159265f);
+    void noteOn(int midiNote);
+    float process();
 
-        phase += freq / sampleRate;
-        if (phase >= 1.0f) phase -= 1.0f;
-
-        return sample * 0.2f;
-    }
+    void noteOff() { this->playing = false; }
+    inline float noise() { return (rand() / (float)RAND_MAX) * 2.0f - 1.0f; }
+    inline float nonlinearity(float x) { return x - x * x * x; }
 };
 
 class synthModule : public module {
@@ -37,8 +53,6 @@ public:
 	void load() override;
 	void unload() override;
 
-private:
-    static constexpr int MAX_VOICES = 16;
-    static constexpr float SAMPLE_RATE = 48000.0f;
-    SynthVoice voicesArr[MAX_VOICES];    
+private:    
+	std::map<int, synthVoice> allVoices;
 };

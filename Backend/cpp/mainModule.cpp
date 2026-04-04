@@ -135,3 +135,13 @@ void mainModule::initEngine() {
 		throw std::runtime_error("Engine init failed!");
 	}
 }
+
+std::map<int, std::string> mainModule::getVoicesNames() {
+	std::map<int, std::string> result;
+
+	for (auto& v : this->voiceManager->getVoices()) {
+		result.emplace(v.getId(), v.getName());
+	}
+
+	return result;
+}

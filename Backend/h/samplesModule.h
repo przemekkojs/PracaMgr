@@ -18,7 +18,7 @@ struct sample {
     std::vector<float> data;
     uint64_t frameCount = 0;
     uint32_t channels = 0;
-    uint32_t sampleRate = 44100;
+    uint32_t sampleRate = module::SAMPLE_RATE;
     bool loaded = false;
 };
 
@@ -41,7 +41,7 @@ struct stereoSample {
 
 class samplesModule : public module {
 public:
-    samplesModule(std::shared_ptr<voices> voiceManager, int maxPolyphony = 1024);
+    samplesModule(std::shared_ptr<voices> voiceManager);
     ~samplesModule();
 
     void play(const noteSignal& signal) override;
@@ -54,8 +54,6 @@ public:
     std::mutex& getVoicesMutex() { return voicesMutex; }
 private:
     std::map<std::pair<int, int>, sample*> samples;
-
-    int maxPolyphony;
 
     std::vector<sampleVoice> newVoicesQueue;
     std::vector<sampleVoice> activeVoices;

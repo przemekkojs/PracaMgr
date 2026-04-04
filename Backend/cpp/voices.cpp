@@ -1,7 +1,7 @@
 #include "../h/voices.h"
 #include <iostream>
 
-voice::voice(std::string name, int id, bool active) {
+voice::voice(std::string name, int id, const pipeParams& synthParams, bool active) : synthParams(synthParams){
 	this->name = name;
 	this->id = id;
 	this->active = active;
@@ -27,24 +27,24 @@ voices::voices() : container() {
 void voices::loadVoices() {
 	auto path = INSTRUMENT_PATH.lexically_normal();
 	std::ifstream file(path);
-	std::string line;
 
-	while (std::getline(file, line)) {
-		std::stringstream ss(line);
-		std::string cell;
-		std::vector<std::string> row;
+	if (!file.is_open()) {
+		std::cerr << "Failed to open voices file\n";
+		return;
+	}
 
-		while (std::getline(ss, cell, ',')) {
-			row.push_back(cell);
-		}
+	nlohmann::json data;
+	file >> data;
 
-		int id = std::stoi(row[0]);
-		std::string name = row[1];
+	for (const auto& item : data) {
+		int id = item.value("id", 0);
+		std::string name = item.value("name", "unknown");
 
 		std::transform(name.begin(), name.end(), name.begin(), ::tolower);
 		std::replace(name.begin(), name.end(), ' ', '-');
-		voice v = voice(name, id, false);
-		this->container.push_back(v);
+
+		pipeParams params = pipeParams::fromJson(item["params"]);
+		this->container.push_back(voice(name, id, params, false));
 	}
 }
 

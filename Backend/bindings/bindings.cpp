@@ -47,7 +47,9 @@ PYBIND11_MODULE(organ_engine, m) {
 
         .def("set_voice_active", &mainModule::setVoiceActive)
 
-        .def("get_midi_device_name", &mainModule::getMidiDeviceName);
+        .def("get_midi_device_name", &mainModule::getMidiDeviceName)
+
+        .def("get_voices_names", &mainModule::getVoicesNames);
 
     m.attr("EMPTY_NOTE_SIGNAL") = EMPTY_NOTE_SIGNAL;
 }

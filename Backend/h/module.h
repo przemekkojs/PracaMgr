@@ -18,6 +18,9 @@ public:
 	const bool isActive() const { return active; }
 	void setActive(bool value);
 
+	static constexpr int MAX_VOICES = 16;
+	static constexpr float SAMPLE_RATE = 48000.0f;
+
 protected:
 	std::shared_ptr<voices> voiceManager;
 	bool active;

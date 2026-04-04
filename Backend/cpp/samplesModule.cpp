@@ -2,10 +2,9 @@
 
 #include <iostream>
 
-samplesModule::samplesModule(std::shared_ptr<voices> voiceManager, int maxPolyphony) : module(std::move(voiceManager))
+samplesModule::samplesModule(std::shared_ptr<voices> voiceManager) : module(std::move(voiceManager))
 {
     this->running = false;
-    this->maxPolyphony = maxPolyphony;
 }
 
 samplesModule::~samplesModule() {

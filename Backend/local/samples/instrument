@@ -1,5 +1,53 @@
-1,Prinzipal 8
-2,Holzgedact 8
-3,Gambe 8
-4,Trompete 8
-5,Mixtur 3-4 fach
+[
+  {
+    "id": 1,
+    "name": "Prinzipal 8",
+    "params": {
+      "jetDelay": 14.0,
+      "feedbackGain": 0.985,
+      "loss": 0.12,
+      "envSpeed": 0.003,
+      "noiseGain": 0.12,
+      "outputGain": 0.35,
+      "tuning": 1.0,
+      "pipeScale": 0.5,
+      "detune": 0.06,
+      "feedbackDamping": 0.82,
+      "noiseWeight": 0.1
+    }
+  },
+  {
+    "id": 2,
+    "name": "Holzgedackt 8",
+    "params": {
+      "jetDelay": 26.0,
+      "feedbackGain": 0.94,
+      "loss": 0.35,
+      "envSpeed": 0.006,
+      "noiseGain": 0.25,
+      "outputGain": 0.3,
+      "tuning": 1.0,
+      "pipeScale": 0.7,
+      "detune": 0.04,
+      "feedbackDamping": 0.68,
+      "noiseWeight": 0.1
+    }
+  },
+  {
+    "id": 3,
+    "name": "Gambe 8",
+    "params": {
+      "jetDelay": 10.0,
+      "feedbackGain": 0.992,
+      "loss": 0.08,
+      "envSpeed": 0.002,
+      "noiseGain": 0.18,
+      "outputGain": 0.35,
+      "tuning": 1.0,
+      "pipeScale": 0.45,
+      "detune": 0.1,
+      "feedbackDamping": 0.75,
+      "noiseWeight": 0.1
+    }
+  }
+]

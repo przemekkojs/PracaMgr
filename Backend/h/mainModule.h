@@ -45,6 +45,8 @@ public:
 
 	std::string getMidiDeviceName() { return this->midiIn.getPortName(MIDI_PORT_ID); }
 
+	std::map<int, std::string> getVoicesNames();
+
 private:
 	std::shared_ptr<voices> voiceManager;
 	samplesModule samples;
