@@ -97,7 +97,7 @@ float synthVoice::process()
     float periodSamples = sampleRate / freq;
     float detune = 1.0f + params.detune * sinf(0.0001f * feedback);
 
-    float delaySamples = periodSamples * params.pipeScale * params.tuning * detune;
+    float delaySamples = periodSamples * params.pipeScale * params.tuning * detune * params.tuningCompensation;
     float excitation = (noise() * params.noiseWeight + sinf(feedback * 5.0f) * (1.0f - params.noiseWeight)) * env * params.noiseGain;
     float input = excitation + feedback * (params.feedbackGain);
     float nl = tanh(input);

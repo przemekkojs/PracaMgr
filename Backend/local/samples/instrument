@@ -13,7 +13,8 @@
       "pipeScale": 0.5,
       "detune": 0.06,
       "feedbackDamping": 0.82,
-      "noiseWeight": 0.1
+      "noiseWeight": 0.1,
+      "tuningCompensation": 0.8
     }
   },
   {
@@ -30,7 +31,8 @@
       "pipeScale": 0.7,
       "detune": 0.04,
       "feedbackDamping": 0.68,
-      "noiseWeight": 0.1
+      "noiseWeight": 0.1,
+      "tuningCompensation": 1
     }
   },
   {
@@ -47,7 +49,8 @@
       "pipeScale": 0.45,
       "detune": 0.1,
       "feedbackDamping": 0.75,
-      "noiseWeight": 0.1
+      "noiseWeight": 0.1,
+      "tuningCompensation": 0.9
     }
   }
 ]

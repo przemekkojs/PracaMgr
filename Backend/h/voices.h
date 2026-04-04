@@ -38,6 +38,7 @@ struct pipeParams {
     float detune;
     float feedbackDamping;
     float noiseWeight;
+    float tuningCompensation;
 
     static pipeParams fromJson(const nlohmann::json& j) {
         pipeParams p;
@@ -52,6 +53,7 @@ struct pipeParams {
         p.detune = j.value("detune", 0.05f);
         p.feedbackDamping = j.value("feedbackDamping", 0.8f);
         p.noiseWeight = j.value("noiseWeight", 0.3f);
+        p.tuningCompensation = j.value("tuningCompensation", 0.8f);
         return p;
     }
 };
