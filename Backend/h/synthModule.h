@@ -16,12 +16,10 @@ struct synthVoice {
     float phase = 0.0f;
     float sampleRate = 48000.0f;
 
-    // envelope
     float env = 0.0f;
-    float attack = 0.001f;   // szybki start
-    float release = 0.0005f; // ³agodne wybrzmiewanie
+    float attack = 0.001f;
+    float release = 0.0005f;
 
-    // noise (oddech piszcza³ki)
     std::mt19937 rng;
     std::uniform_real_distribution<float> dist{ -1.0f, 1.0f };
 
@@ -46,7 +44,6 @@ struct synthVoice {
     float process() {
         if (env < 0.0001f && !playing) return 0.0f;
 
-        // envelope
         if (playing) {
             env += attack;
             if (env > 1.0f) env = 1.0f;
@@ -56,16 +53,13 @@ struct synthVoice {
             if (env < 0.0f) env = 0.0f;
         }
 
-        // oscillator (lekko "organowy")
         float sample =
             std::sin(phase) * 0.8f +
             std::sin(2.0f * phase) * 0.15f +
             std::sin(3.0f * phase) * 0.05f;
 
-        // noise (tylko na pocz¹tku)
         float noise = dist(rng) * 0.02f * env;
 
-        // update phase
         phase += 2.0f * M_PI * freq / sampleRate;
         if (phase > 2.0f * M_PI) phase -= 2.0f * M_PI;
 
