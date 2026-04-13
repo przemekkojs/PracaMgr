@@ -30,24 +30,33 @@ struct synthVoiceParams {
     float baseFrequency;
     float sampleRate;
     float reflection;
-    float loss;
     float excitationGain;
     float noiseGain;
     float jetGain;
     float scale;
     float jetLength;
+    float loopFeedbackGain;
+    
+    float jetLowpassCoeff;
+    float lowpassCoeff;
+    float nonlinearCoeff;
+    float lossFilterCoeff;
 
     static synthVoiceParams fromJson(const nlohmann::json& j) {
         synthVoiceParams p;
         p.baseFrequency = j.value("baseFrequency", 440.0f);
         p.sampleRate = j.value("sampleRate", 48000.0f);
-        p.reflection = j.value("reflection", 0.995f);
-        p.loss = j.value("loss", 0.0f);
-        p.excitationGain = j.value("excitationGain", 0.98f);
-        p.noiseGain = j.value("noiseGain", 0.05f);
+        p.reflection = j.value("reflection", 0.5f);
+        p.excitationGain = j.value("excitationGain", 0.3f);
+        p.noiseGain = j.value("noiseGain", 0.0f);
         p.scale = j.value("scale", 1.0f);
         p.jetGain = j.value("jetGain", 0.0f);
-        p.jetLength = j.value("jLength", 0.02f);
+        p.jetLength = j.value("jLength", 0.5f);
+        p.jetLowpassCoeff = j.value("jetLowpassCoeff", 0.5f);
+        p.lowpassCoeff = j.value("lowpassCoeff", 0.9f);
+        p.nonlinearCoeff = j.value("nonlinearCoeff", 1.0f);
+        p.lossFilterCoeff = j.value("lossFilterCoeff", 0.3f);
+        p.loopFeedbackGain = j.value("loopFeedbackGain", 0.9f);
         return p;
     }
 };

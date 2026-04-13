@@ -2,16 +2,77 @@
   {
     "id": 1,
     "name": "Prinzipal 8",
-    "params": { }
+    "params": {
+      "baseFrequency": 440.0,
+      "reflection": 0.45,
+      "excitationGain": 0.45,
+      "noiseGain" :  0.01,
+      "jLength": 0.48,
+      "jetLowpassCoeff": 0.3,
+      "lowpassCoeff": 0.6,
+      "nonlinearCoeff": 0.8,
+      "lossFilterCoeff": 0.15,
+      "loopFeedbackGain": 0.8
+    }
   },
   {
     "id": 2,
     "name": "Holzgedackt 8",
-    "params": { }
+    "params": {
+      "baseFrequency": 440.0,
+      "reflection": 0.35,
+      "excitationGain": 0.55,
+      "jLength": 0.5,
+      "jetLowpassCoeff": 0.7,
+      "lowpassCoeff": 0.85,
+      "nonlinearCoeff": 0.6,
+      "lossFilterCoeff": 0.4,
+      "loopFeedbackGain": 0.75
+    }
   },
   {
     "id": 3,
     "name": "Gambe 8",
-    "params": { }
+    "params": {
+      "baseFrequency": 440.0,
+      "reflection": 0.5,
+      "excitationGain": 0.35,
+      "jLength": 0.35,
+      "jetLowpassCoeff": 0.1,
+      "lowpassCoeff": 0.3,
+      "nonlinearCoeff": 1.1,
+      "lossFilterCoeff": 0.05,
+      "loopFeedbackGain": 0.92
+    }
+  },
+  {
+    "id": 4,
+    "name": "Flöte 8",
+    "params": {
+      "baseFrequency": 440.0,
+      "reflection": 0.3,
+      "excitationGain": 0.5,
+      "jLength": 0.45,
+      "jetLowpassCoeff": 0.5,
+      "lowpassCoeff": 0.7,
+      "nonlinearCoeff": 0.5,
+      "lossFilterCoeff": 0.2,
+      "loopFeedbackGain": 0.8
+    }
+  },
+  {
+    "id": 5,
+    "name": "Salicional 8",
+    "params": {
+      "baseFrequency": 440.0,
+      "reflection": 0.48,
+      "excitationGain": 0.38,
+      "jLength": 0.4,
+      "jetLowpassCoeff": 0.2,
+      "lowpassCoeff": 0.45,
+      "nonlinearCoeff": 0.95,
+      "lossFilterCoeff": 0.1,
+      "loopFeedbackGain": 0.88
+    }
   }
 ]

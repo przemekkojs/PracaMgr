@@ -45,15 +45,18 @@ void synthModule::unload() {
 }
 
 
-synthPipe::synthPipe() : params() {
-    this->playing = false;
-}
+synthPipe::synthPipe() : params(), adsr() { }
 
 void synthPipe::load(synthPipeParams& params) {
     this->params = params;
 
-    delayLine.assign(params.delaySamples, 0.0f);
-    jetDelayLine.assign(params.jetDelaySamples, 0.0f);
+    this->adsr.setAttack(0.04f);
+    this->adsr.setDecay(0.05f);
+    this->adsr.setSustain(0.7f);
+    this->adsr.setRelease(0.1f);
+
+    delayLine.assign((int)params.delaySamples + 4, 0.0f);
+    jetDelayLine.assign((int)params.jetDelaySamples + 4, 0.0f);
 
     writeIdx = 0;
     jetIdx = 0;
@@ -86,7 +89,7 @@ float synthPipe::whiteNoise() {
 }
 
 void synthPipe::noteOn() {
-    this->playing = true;
+    this->adsr.noteOn();
 
     for (int i = 0; i < delayLine.size(); i++) {
         delayLine[i] = 0.01f * ((float)rand() / RAND_MAX - 0.5f);
@@ -96,82 +99,105 @@ void synthPipe::noteOn() {
 }
 
 void synthPipe::noteOff() {
-    this->playing = false;
+    this->adsr.noteOff();
 }
 
 float synthPipe::lossFilter(float x) {
-    lossState = (1 - params.loss) * x + params.loss * lossState;
+    lossState = (1 - params.lossFilterCoeff) * x + params.lossFilterCoeff * lossState;
     return lossState;
 }
 
 float synthPipe::lowpass(float x) {
-    const float a = 0.12f;
-    loopLP = (1 - a) * x + a * loopLP;
+    loopLP = (1 - params.lowpassCoeff) * x + params.lowpassCoeff * loopLP;
     return loopLP;
 }
 
 float synthPipe::jetLowpass(float x) {
-    const float a = 0.25f;
-    jetLP = (1 - a) * x + a * jetLP;
+    jetLP = (1 - params.jetLowpassCoeff) * x + params.jetLowpassCoeff * jetLP;
     return jetLP;
 }
 
-float synthPipe::nonlinear(float x) {
-    return x - 0.9f * x * x * x;
+float synthPipe::nonlinear(float x, float env) {
+    float offset = 0.05f * (1 + env);
+    float input = std::clamp(x + offset, -1.0f, 1.0f);
+    return input - (input * input * input);
 }
 
 float synthPipe::process() {
-    if (!playing)
+    if (!adsr.isActive())
         return 0.0f;
 
-    int readIdx = (writeIdx + 1) % delayLine.size();
-    float pipeOut = delayLine[readIdx];
-    float filtered = lossFilter(pipeOut);
-    lastSample = filtered;
+    float env = adsr.process();
+    float noiseAmount = params.noiseGain * env;
+    if (env > 0.9f) noiseAmount *= 1.5f;
 
-    float noiseIn = whiteNoise();
-    noiseIn = jetLowpass(noiseIn);
+    float tap = (float)writeIdx - params.delaySamples;
+    if (tap < 0) tap += (float)delayLine.size();
 
-    int jetRead = (jetIdx + 1) % jetDelayLine.size();
-    float jetInput = params.noiseGain * noiseIn + params.jetGain * filtered;
-    float jetDelayed = jetDelayLine[jetRead];
-    jetDelayLine[jetIdx] = jetInput;
-    jetIdx = jetRead;
+    int i1 = (int)tap;
+    int i2 = (i1 + 1) % delayLine.size();
+    float f = tap - (float)i1;
+    float pipeOut = delayLine[i1] + f * (delayLine[i2] - delayLine[i1]);
 
-    jetDelayed = jetLowpass(jetDelayed);
-    float nonlinear = this->nonlinear(jetDelayed);
-    float feedback = filtered * params.reflection;
-    feedback = lowpass(feedback);
+    float filteredOut = pipeOut - lastSample;
+    lastSample = pipeOut * 0.995f;   
 
-    float input = nonlinear + feedback;
-    input = lowpass(input);
-    input = lossFilter(input);
+    float turbulence = whiteNoise() * noiseAmount;    
+    float driftNoise = ((float)rand() / RAND_MAX - 0.5f) * 0.002f;
+    smoothedNoise = (0.05f * turbulence) + (0.95f * smoothedNoise);    
+    windDrift = (0.9999f * windDrift) + driftNoise;
+    float breath = (params.excitationGain * env) + smoothedNoise + windDrift;
+    float pressureDiff = breath - (pipeOut * params.reflection);
 
-    delayLine[writeIdx] = input;
-    writeIdx = readIdx;
+    jetDelayLine[jetIdx] = pressureDiff;
+    int jetReadIdx = (jetIdx + 1) % jetDelayLine.size();
+    float jetDelayed = jetDelayLine[jetReadIdx];
+    jetIdx = jetReadIdx;
 
-    return pipeOut;
+    float x = std::clamp(jetDelayed, -1.0f, 1.0f);
+    float nonlinearOut = this->nonlinear(x, env);
+
+    float pipeInput = nonlinearOut + (pipeOut * params.loopFeedbackGain);
+    pipeInput = lowpass(pipeInput);
+
+    delayLine[writeIdx] = pipeInput;
+    writeIdx = (writeIdx + 1) % delayLine.size();
+
+    float dcBlocker = pipeOut - lastPipeOut;
+    lastPipeOut = pipeOut * 0.995f;
+
+    return dcBlocker * 0.3f;
 }
 
 synthVoice::synthVoice() : pipes(), params() {}
 
-synthPipeParams& synthVoice::pipeParams(int note) {
-    static synthPipeParams p;
+synthPipeParams synthVoice::pipeParams(int note) {
+    synthPipeParams p;
 
     float freq = this->params.baseFrequency *
         std::pow(2.0f, (note - 69) / 12.0f);
 
     freq *= this->params.scale;
 
+    float filterDelayComp = 1.0f;
+    float jetRatio = 0.5f;
+
     p.frequency = freq;
     p.sampleRate = this->params.sampleRate;
     p.reflection = this->params.reflection;
-    p.loss = this->params.loss;
+    p.lossFilterCoeff = this->params.lossFilterCoeff;
+    p.jetLowpassCoeff = this->params.jetLowpassCoeff;
+    p.nonlinearCoeff = this->params.nonlinearCoeff;
+    p.lowpassCoeff = this->params.lowpassCoeff;
     p.excitationGain = this->params.excitationGain;
     p.noiseGain = this->params.noiseGain;
-    p.jetGain = this->params.jetGain;
-    p.delaySamples = (int)(p.sampleRate / p.frequency);
-    p.jetDelaySamples = (int)(this->params.jetLength * p.delaySamples);
+    p.jetGain = this->params.jetGain;    
+
+    p.delaySamples = (p.sampleRate / p.frequency) - filterDelayComp;
+    p.jetDelaySamples = p.delaySamples * jetRatio;
+    p.jetDelaySamples = std::clamp(p.jetDelaySamples, 2.0f, p.delaySamples * 0.9f);
+
+    p.loopFeedbackGain = this->params.loopFeedbackGain;
 
     return p;
 }
@@ -204,4 +230,31 @@ float synthVoice::process() {
     }
 
     return out;
+}
+
+
+float ADSR::process() {
+    switch (state) {
+        case AdsrState::ATTACK:
+            value += attackRate;
+            if (value >= 1.0f) { value = 1.0f; state = AdsrState::DECAY; }
+            break;
+        case AdsrState::DECAY:
+            value -= decayRate;
+            if (value <= sustainLevel) { value = sustainLevel; state = AdsrState::SUSTAIN; }
+            break;
+        case AdsrState::SUSTAIN:
+            break;
+        case AdsrState::RELEASE:
+            value -= releaseRate;
+            if (value <= 0.0f) { value = 0.0f; state = AdsrState::IDLE; }
+            break;
+        default: break;
+    }
+
+    return value;
+}
+
+void ADSR::calculateRate(float& what, float seconds) {
+    what = (1.0f / (seconds * this->sampleRate));
 }
