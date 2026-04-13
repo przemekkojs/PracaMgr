@@ -1,71 +1,87 @@
 #pragma once
 
 #include <map>
-#include <cmath>
-#include <random>
 
 #include "module.h"
 #include "voices.h"
 
+#include <vector>
+#include <cmath>
+#include <random>
 
-struct synthVoice {
-    bool playing = false;
-    int note = -1;
+struct synthPipeParams {
+	float frequency;
+	float sampleRate;
+	float excitationGain;
+	float reflection;
+	float loss;
+	float jetGain;
+	float noiseGain;
 
-    float freq = 0.0f;
-    float phase = 0.0f;
-    float sampleRate = 48000.0f;
+	int delaySamples;      // d³ugoœæ rury
+	int jetDelaySamples;   // opóŸnienie strugi (KRUCIAL)
 
-    float env = 0.0f;
-    float attack = 0.001f;
-    float release = 0.0005f;
-
-    std::mt19937 rng;
-    std::uniform_real_distribution<float> dist{ -1.0f, 1.0f };
-
-    synthVoice() {
-        rng.seed(std::random_device{}());
-    }
-
-    inline float midiToFreq(int note) {
-        return 440.0f * std::pow(2.0f, (note - 69) / 12.0f);
-    }
-
-    void noteOn(int n) {
-        note = n;
-        freq = midiToFreq(n);
-        playing = true;
-    }
-
-    void noteOff() {
-        playing = false;
-    }
-
-    float process() {
-        if (env < 0.0001f && !playing) return 0.0f;
-
-        if (playing) {
-            env += attack;
-            if (env > 1.0f) env = 1.0f;
-        }
-        else {
-            env -= release;
-            if (env < 0.0f) env = 0.0f;
-        }
-
-        float sample =
-            std::sin(phase) * 0.8f +
-            std::sin(2.0f * phase) * 0.15f +
-            std::sin(3.0f * phase) * 0.05f;
-
-        float noise = dist(rng) * 0.02f * env;
-
-        phase += 2.0f * M_PI * freq / sampleRate;
-        if (phase > 2.0f * M_PI) phase -= 2.0f * M_PI;
-
-        return (sample + noise) * env;
-    }
+	synthPipeParams() {}
 };
+
+class synthPipe {
+public:
+	synthPipe();
+
+	void load(synthPipeParams& params);
+	void noteOn();
+	void noteOff();
+	float process();
+	float lossFilter(float x);
+	float lowpass(float x);
+	float jetLowpass(float x);
+	float nonlinear(float x);
+
+	float pinkNoise();
+	float whiteNoise();
+	float brownNoise();
+
+	synthPipeParams& getParams() { return this->params; }
+
+private:
+	bool playing;
+	synthPipeParams params;
+
+	std::vector<float> delayLine;
+	std::vector<float> jetDelayLine;
+
+	int writeIdx = 0;
+	int jetIdx = 0;
+
+	float lastSample = 0.0f;
+	float lossState = 0.0f;
+	float loopLP = 0.0f;
+	float jetLP = 0.0f;
+
+	std::mt19937 rng;
+	std::uniform_real_distribution<float> noise{ -1.0f, 1.0f };
+};
+
+
+class synthVoice {
+public:
+	synthVoice();
+
+	void load(synthVoiceParams& params);
+	void noteOn(int note);
+	void noteOff(int note);
+	float process();
+
+	synthPipeParams& pipeParams(int note);
+
+	std::vector<synthPipe>& getPipes() { return this->pipes; }
+	synthVoiceParams& getParams() { return this->params; }
+
+private:
+	std::vector<synthPipe> pipes;
+	synthVoiceParams params;
+};
+
 
 class synthModule : public module {
 public:
@@ -76,6 +92,6 @@ public:
 	void load() override;
 	void unload() override;
 
-private:    
-	std::map<int, synthVoice> allVoices;
+private:
+	std::vector<synthVoice> allVoices;
 };

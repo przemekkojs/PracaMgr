@@ -26,46 +26,40 @@ const std::string ATTACK_POSTFIX = "_attack";
 const int LOWEST_NOTE = 48;
 const int NUMBER_OF_NOTES = 24;
 
-struct pipeParams {
-    float jetDelay;
-    float feedbackGain;
+struct synthVoiceParams {
+    float baseFrequency;
+    float sampleRate;
+    float reflection;
     float loss;
-    float envSpeed;
+    float excitationGain;
     float noiseGain;
-    float outputGain;
-    float tuning;
-    float pipeScale;
-    float detune;
-    float feedbackDamping;
-    float noiseWeight;
-    float tuningCompensation;
+    float jetGain;
+    float scale;
+    float jetLength;
 
-    static pipeParams fromJson(const nlohmann::json& j) {
-        pipeParams p;
-        p.jetDelay = j.value("jetDelay", 20.0f);
-        p.feedbackGain = j.value("feedbackGain", 0.95f);
-        p.loss = j.value("loss", 0.2f);
-        p.envSpeed = j.value("envSpeed", 0.001f);
-        p.noiseGain = j.value("noiseGain", 0.2f);
-        p.outputGain = j.value("outputGain", 0.3f);
-        p.tuning = j.value("tuning", 1.0f);
-        p.pipeScale = j.value("pipeScale", 1.0f);
-        p.detune = j.value("detune", 0.05f);
-        p.feedbackDamping = j.value("feedbackDamping", 0.8f);
-        p.noiseWeight = j.value("noiseWeight", 0.3f);
-        p.tuningCompensation = j.value("tuningCompensation", 0.8f);
+    static synthVoiceParams fromJson(const nlohmann::json& j) {
+        synthVoiceParams p;
+        p.baseFrequency = j.value("baseFrequency", 440.0f);
+        p.sampleRate = j.value("sampleRate", 48000.0f);
+        p.reflection = j.value("reflection", 1.0f);
+        p.loss = j.value("loss", 0.0f);
+        p.excitationGain = j.value("excitationGain", 0.98f);
+        p.noiseGain = j.value("noiseGain", 0.00f);
+        p.scale = j.value("scale", 1.0f);
+        p.jetGain = j.value("jetGain", 0.0f);
+        p.jetLength = j.value("jLength", 0.2f);
         return p;
     }
 };
 
 class voice {
 public:
-	voice(std::string name, int id, const pipeParams& synthParams, bool active=false);	
+	voice(std::string name, int id, const synthVoiceParams& synthParams, bool active=false);
 
 	int getId() const { return this->id; }
 	bool isActive() const { return this->active; }
 	std::string getName() const { return this->name; }
-    pipeParams& const getSynthParams() { return this->synthParams; }
+    synthVoiceParams& const getSynthParams() { return this->synthParams; }
 
 	void setActive(bool value) { this->active = value; }
 
@@ -73,7 +67,7 @@ public:
 	std::vector<std::string> getSamplesPath(int note) const;
 
 private:
-    pipeParams synthParams;
+    synthVoiceParams synthParams;
 	std::string name;
 	bool active;
 	int id;

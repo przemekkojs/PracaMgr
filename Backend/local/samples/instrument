@@ -2,55 +2,16 @@
   {
     "id": 1,
     "name": "Prinzipal 8",
-    "params": {
-      "jetDelay": 14.0,
-      "feedbackGain": 0.985,
-      "loss": 0.12,
-      "envSpeed": 0.003,
-      "noiseGain": 0.05,
-      "outputGain": 0.35,
-      "tuning": 1.0,
-      "pipeScale": 0.5,
-      "detune": 0.06,
-      "feedbackDamping": 0.995,
-      "noiseWeight": 0.1,
-      "tuningCompensation": 0.8
-    }
+    "params": { }
   },
   {
     "id": 2,
     "name": "Holzgedackt 8",
-    "params": {
-      "jetDelay": 26.0,
-      "feedbackGain": 0.94,
-      "loss": 0.35,
-      "envSpeed": 0.006,
-      "noiseGain": 0.02,
-      "outputGain": 0.3,
-      "tuning": 1.0,
-      "pipeScale": 0.7,
-      "detune": 0.04,
-      "feedbackDamping": 0.68,
-      "noiseWeight": 0.1,
-      "tuningCompensation": 1
-    }
+    "params": { }
   },
   {
     "id": 3,
     "name": "Gambe 8",
-    "params": {
-      "jetDelay": 10.0,
-      "feedbackGain": 0.992,
-      "loss": 0.08,
-      "envSpeed": 0.002,
-      "noiseGain": 0.04,
-      "outputGain": 0.35,
-      "tuning": 1.0,
-      "pipeScale": 0.45,
-      "detune": 0.1,
-      "feedbackDamping": 0.75,
-      "noiseWeight": 0.1,
-      "tuningCompensation": 0.9
-    }
+    "params": { }
   }
 ]

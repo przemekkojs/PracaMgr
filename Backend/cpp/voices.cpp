@@ -1,7 +1,7 @@
 #include "../h/voices.h"
 #include <iostream>
 
-voice::voice(std::string name, int id, const pipeParams& synthParams, bool active) : synthParams(synthParams){
+voice::voice(std::string name, int id, const synthVoiceParams& synthParams, bool active) : synthParams(synthParams){
 	this->name = name;
 	this->id = id;
 	this->active = active;
@@ -43,7 +43,7 @@ void voices::loadVoices() {
 		std::transform(name.begin(), name.end(), name.begin(), ::tolower);
 		std::replace(name.begin(), name.end(), ' ', '-');
 
-		pipeParams params = pipeParams::fromJson(item["params"]);
+		synthVoiceParams params = synthVoiceParams::fromJson(item["params"]);
 		this->container.push_back(voice(name, id, params, false));
 	}
 }
