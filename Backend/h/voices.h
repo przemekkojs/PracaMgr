@@ -41,13 +41,13 @@ struct synthVoiceParams {
         synthVoiceParams p;
         p.baseFrequency = j.value("baseFrequency", 440.0f);
         p.sampleRate = j.value("sampleRate", 48000.0f);
-        p.reflection = j.value("reflection", 1.0f);
+        p.reflection = j.value("reflection", 0.995f);
         p.loss = j.value("loss", 0.0f);
         p.excitationGain = j.value("excitationGain", 0.98f);
-        p.noiseGain = j.value("noiseGain", 0.00f);
+        p.noiseGain = j.value("noiseGain", 0.05f);
         p.scale = j.value("scale", 1.0f);
         p.jetGain = j.value("jetGain", 0.0f);
-        p.jetLength = j.value("jLength", 0.2f);
+        p.jetLength = j.value("jLength", 0.02f);
         return p;
     }
 };

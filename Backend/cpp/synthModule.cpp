@@ -132,10 +132,9 @@ float synthPipe::process() {
     float noiseIn = whiteNoise();
     noiseIn = jetLowpass(noiseIn);
 
-    float jetInput = params.noiseGain * noiseIn + params.jetGain * filtered;
     int jetRead = (jetIdx + 1) % jetDelayLine.size();
+    float jetInput = params.noiseGain * noiseIn + params.jetGain * filtered;
     float jetDelayed = jetDelayLine[jetRead];
-
     jetDelayLine[jetIdx] = jetInput;
     jetIdx = jetRead;
 
@@ -153,7 +152,6 @@ float synthPipe::process() {
 
     return pipeOut;
 }
-
 
 synthVoice::synthVoice() : pipes(), params() {}
 
