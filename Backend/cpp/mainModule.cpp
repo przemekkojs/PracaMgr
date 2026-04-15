@@ -103,8 +103,8 @@ void mainModule::audioCallback(ma_device* device, void* output, const void*, ma_
 		self->processSample(outL, outR);
 
 		out[i * 2 + 0] = outL;
-		out[i * 2 + 1] = outR;
-	}
+		out[i * 2 + 1] = outR;		
+	}	
 }
 
 void mainModule::initDevice() {

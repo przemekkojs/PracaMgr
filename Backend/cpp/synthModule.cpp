@@ -25,8 +25,8 @@ void synthModule::processSample(float& outL, float& outR) {
         sum += v.process();
     }
 
-    outL += sum * 0.2f;
-    outR += sum * 0.2f;
+    outL += sum;
+    outR += sum;
 }
 
 void synthModule::load() {
@@ -55,8 +55,8 @@ void synthPipe::load(synthPipeParams& params) {
     this->adsr.setSustain(0.7f);
     this->adsr.setRelease(0.1f);
 
-    delayLine.assign((int)params.delaySamples + 4, 0.0f);
-    jetDelayLine.assign((int)params.jetDelaySamples + 4, 0.0f);
+    delayLine.assign(static_cast<std::vector<float, std::allocator<float>>::size_type>((int)params.delaySamples) + 4, 0.0f);
+    jetDelayLine.assign(static_cast<std::vector<float, std::allocator<float>>::size_type>((int)params.jetDelaySamples) + 4, 0.0f);
 
     writeIdx = 0;
     jetIdx = 0;
@@ -182,7 +182,7 @@ synthPipeParams synthVoice::pipeParams(int note) {
     float filterDelayComp = 1.0f;
     float jetRatio = 0.5f;
 
-    p.baseParams = &(this->params);
+    p.baseParams = &this->params;
     p.frequency = freq;
 
     p.delaySamples = (this->params.sampleRate / p.frequency) - filterDelayComp;
@@ -227,17 +227,32 @@ float ADSR::process() {
     switch (state) {
         case AdsrState::ATTACK:
             value += attackRate;
-            if (value >= 1.0f) { value = 1.0f; state = AdsrState::DECAY; }
+
+            if (value >= 1.0f) { 
+                value = 1.0f;
+                state = AdsrState::DECAY;
+            }
+
             break;
         case AdsrState::DECAY:
             value -= decayRate;
-            if (value <= sustainLevel) { value = sustainLevel; state = AdsrState::SUSTAIN; }
+
+            if (value <= sustainLevel) {
+                value = sustainLevel;
+                state = AdsrState::SUSTAIN;
+            }
+
             break;
         case AdsrState::SUSTAIN:
             break;
         case AdsrState::RELEASE:
             value -= releaseRate;
-            if (value <= 0.0f) { value = 0.0f; state = AdsrState::IDLE; }
+
+            if (value <= 0.0f) {
+                value = 0.0f;
+                state = AdsrState::IDLE;
+            }
+
             break;
         default: break;
     }
@@ -245,6 +260,6 @@ float ADSR::process() {
     return value;
 }
 
-void ADSR::calculateRate(float& what, float seconds) {
+void ADSR::calculateRate(float& what, float seconds) const {
     what = (1.0f / (seconds * this->sampleRate));
 }

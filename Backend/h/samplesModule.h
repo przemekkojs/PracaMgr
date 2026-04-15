@@ -60,9 +60,10 @@ private:
     std::mutex queueMutex;    
     std::mutex voicesMutex;
     std::thread voiceThread;
-    void voiceManagerThread();
-    bool running;    
+    
+    bool running;
 
+    void voiceManagerThread();
     void getSample(sampleVoice& v, float& outL, float& outR);    
     void loadSamples();
     void unloadSamples();

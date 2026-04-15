@@ -23,7 +23,7 @@ public:
 	void setRelease(float seconds) { this->calculateRate(this->releaseRate, seconds); }
 	void setSustain(float seconds) { this->calculateRate(this->sustainLevel, seconds); }
 
-	void calculateRate(float& what, float seconds);
+	void calculateRate(float& what, float seconds) const;
 
 private:
 	AdsrState state = AdsrState::IDLE;
@@ -36,13 +36,13 @@ private:
 };
 
 struct synthPipeParams {
-	synthVoiceParams* baseParams = nullptr;
+	synthVoiceParams* baseParams;
 
 	float frequency;
 	float delaySamples;
 	float jetDelaySamples;
 
-	synthPipeParams() {}
+	synthPipeParams() { this->baseParams = nullptr; }
 };
 
 class synthPipe {

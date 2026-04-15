@@ -35,6 +35,7 @@ struct synthVoiceParams {
 
     static synthVoiceParams fromJson(const nlohmann::json& j) {
         synthVoiceParams p;
+
         p.baseFrequency = j.value("baseFrequency", 440.0f);
         p.sampleRate = j.value("sampleRate", 48000.0f);
         p.reflection = j.value("reflection", 0.5f);
@@ -48,6 +49,7 @@ struct synthVoiceParams {
         p.nonlinearCoeff = j.value("nonlinearCoeff", 1.0f);
         p.lossFilterCoeff = j.value("lossFilterCoeff", 0.3f);
         p.loopFeedbackGain = j.value("loopFeedbackGain", 0.9f);
+
         return p;
     }
 };
@@ -58,8 +60,10 @@ struct modelVoiceParams {
 
     static modelVoiceParams fromJson(const nlohmann::json& j) {
         modelVoiceParams p;
+
         p.baseFrequency = j.value("baseFrequency", 440.0f);
         p.sampleRate = j.value("sampleRate", 48000.0f);
+
         return p;
     }
 };
