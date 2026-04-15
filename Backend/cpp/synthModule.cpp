@@ -102,17 +102,17 @@ void synthPipe::noteOff() {
 }
 
 float synthPipe::lossFilter(float x) {
-    lossState = (1 - params.baseParams->lossFilterCoeff) * x + params.baseParams->lossFilterCoeff * lossState;
+    lossState = (1 - params.baseParams.lossFilterCoeff) * x + params.baseParams.lossFilterCoeff * lossState;
     return lossState;
 }
 
 float synthPipe::lowpass(float x) {
-    loopLP = (1 - params.baseParams->lowpassCoeff) * x + params.baseParams->lowpassCoeff * loopLP;
+    loopLP = (1 - params.baseParams.lowpassCoeff) * x + params.baseParams.lowpassCoeff * loopLP;
     return loopLP;
 }
 
 float synthPipe::jetLowpass(float x) {
-    jetLP = (1 - params.baseParams->jetLowpassCoeff) * x + params.baseParams->jetLowpassCoeff * jetLP;
+    jetLP = (1 - params.baseParams.jetLowpassCoeff) * x + params.baseParams.jetLowpassCoeff * jetLP;
     return jetLP;
 }
 
@@ -123,11 +123,12 @@ float synthPipe::nonlinear(float x, float env) {
 }
 
 float synthPipe::process() {
-    if (!adsr.isActive())
+    if (!adsr.isActive() || delayLine.empty() || jetDelayLine.empty()) {
         return 0.0f;
+    }        
 
     float env = adsr.process();
-    float noiseAmount = params.baseParams->noiseGain * env;
+    float noiseAmount = params.baseParams.noiseGain * env;
 
     if (env > 0.9f)
         noiseAmount *= 1.5f;
@@ -149,8 +150,8 @@ float synthPipe::process() {
     float driftNoise = ((float)rand() / RAND_MAX - 0.5f) * 0.002f;
     smoothedNoise = (0.05f * turbulence) + (0.95f * smoothedNoise);    
     windDrift = (0.9999f * windDrift) + driftNoise;
-    float breath = (params.baseParams->excitationGain * env) + smoothedNoise + windDrift;
-    float pressureDiff = breath - (pipeOut * params.baseParams->reflection);
+    float breath = (params.baseParams.excitationGain * env) + smoothedNoise + windDrift;
+    float pressureDiff = breath - (pipeOut * params.baseParams.reflection);
 
     jetDelayLine[jetIdx] = pressureDiff;
     int jetReadIdx = (jetIdx + 1) % jetDelayLine.size();
@@ -159,7 +160,7 @@ float synthPipe::process() {
 
     float x = std::clamp(jetDelayed, -1.0f, 1.0f);
     float nonlinearOut = this->nonlinear(x, env);
-    float pipeInput = this->lowpass(nonlinearOut + (pipeOut * params.baseParams->loopFeedbackGain));
+    float pipeInput = this->lowpass(nonlinearOut + (pipeOut * params.baseParams.loopFeedbackGain));
 
     delayLine[writeIdx] = pipeInput;
     writeIdx = (writeIdx + 1) % delayLine.size();
@@ -180,7 +181,7 @@ synthPipeParams synthVoice::pipeParams(int note) {
     float filterDelayComp = 1.0f;
     float jetRatio = 0.5f;
 
-    p.baseParams = &this->params;
+    p.baseParams = this->params;
     p.frequency = freq;
     p.delaySamples = (this->params.sampleRate / freq) - filterDelayComp;
     p.jetDelaySamples = p.delaySamples * jetRatio;

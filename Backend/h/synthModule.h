@@ -36,24 +36,18 @@ private:
 };
 
 struct synthPipeParams {
-	synthVoiceParams* baseParams;
+	synthVoiceParams baseParams;
 
 	float frequency;
 	float delaySamples;
 	float jetDelaySamples;
 
-	synthPipeParams() { this->baseParams = nullptr; }
+	synthPipeParams() : baseParams() { }
 
 	std::string toString() const {
 		std::string result;
 
-		if (baseParams) {
-			result += "[baseParams]\n" + baseParams->toString() + "\n";
-		}
-		else {
-			result += "[baseParams]=nullptr\n";
-		}
-
+		result += "[baseParams]\n" + baseParams.toString() + "\n";
 		result += "frequency=" + std::to_string(frequency) + "\n";
 		result += "delaySamples=" + std::to_string(delaySamples) + "\n";
 		result += "jetDelaySamples=" + std::to_string(jetDelaySamples);
