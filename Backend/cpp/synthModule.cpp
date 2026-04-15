@@ -185,7 +185,7 @@ synthPipeParams synthVoice::pipeParams(int note) {
     p.baseParams = &this->params;
     p.frequency = freq;
 
-    p.delaySamples = (this->params.sampleRate / p.frequency) - filterDelayComp;
+    p.delaySamples = (this->params.sampleRate / freq) - filterDelayComp;
     p.jetDelaySamples = p.delaySamples * jetRatio;
     p.jetDelaySamples = std::clamp(p.jetDelaySamples, 2.0f, p.delaySamples * 0.9f);
 
