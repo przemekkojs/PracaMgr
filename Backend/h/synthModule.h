@@ -43,6 +43,23 @@ struct synthPipeParams {
 	float jetDelaySamples;
 
 	synthPipeParams() { this->baseParams = nullptr; }
+
+	std::string toString() const {
+		std::string result;
+
+		if (baseParams) {
+			result += "[baseParams]\n" + baseParams->toString() + "\n";
+		}
+		else {
+			result += "[baseParams]=nullptr\n";
+		}
+
+		result += "frequency=" + std::to_string(frequency) + "\n";
+		result += "delaySamples=" + std::to_string(delaySamples) + "\n";
+		result += "jetDelaySamples=" + std::to_string(jetDelaySamples);
+
+		return result;
+	}
 };
 
 class synthPipe {

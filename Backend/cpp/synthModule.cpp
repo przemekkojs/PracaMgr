@@ -44,7 +44,6 @@ void synthModule::unload() {
     this->allVoices.clear();
 }
 
-
 synthPipe::synthPipe() : params(), adsr() { }
 
 void synthPipe::load(synthPipeParams& params) {
@@ -71,7 +70,7 @@ float synthPipe::pinkNoise() {
     b1 = 0.99332f * b1 + white * 0.0750759f;
     b2 = 0.96900f * b2 + white * 0.1538520f;
 
-    return (b0 + b1 + b2) * 0.3f;
+    return (b0 + b1 + b2) * 0.33f;
 }
 
 float synthPipe::brownNoise() {
@@ -129,10 +128,14 @@ float synthPipe::process() {
 
     float env = adsr.process();
     float noiseAmount = params.baseParams->noiseGain * env;
-    if (env > 0.9f) noiseAmount *= 1.5f;
+
+    if (env > 0.9f)
+        noiseAmount *= 1.5f;
 
     float tap = (float)writeIdx - params.delaySamples;
-    if (tap < 0) tap += (float)delayLine.size();
+
+    if (tap < 0)
+        tap += (float)delayLine.size();
 
     int i1 = (int)tap;
     int i2 = (i1 + 1) % delayLine.size();
@@ -156,9 +159,7 @@ float synthPipe::process() {
 
     float x = std::clamp(jetDelayed, -1.0f, 1.0f);
     float nonlinearOut = this->nonlinear(x, env);
-
-    float pipeInput = nonlinearOut + (pipeOut * params.baseParams->loopFeedbackGain);
-    pipeInput = lowpass(pipeInput);
+    float pipeInput = this->lowpass(nonlinearOut + (pipeOut * params.baseParams->loopFeedbackGain));
 
     delayLine[writeIdx] = pipeInput;
     writeIdx = (writeIdx + 1) % delayLine.size();
@@ -169,22 +170,18 @@ float synthPipe::process() {
     return dcBlocker * 0.3f;
 }
 
+
 synthVoice::synthVoice() : pipes(), params() {}
 
 synthPipeParams synthVoice::pipeParams(int note) {
     synthPipeParams p;
 
-    float freq = this->params.baseFrequency *
-        std::pow(2.0f, (note - 69) / 12.0f);
-
-    freq *= this->params.scale;
-
+    float freq = this->params.baseFrequency * std::pow(2.0f, (note - 69) / 12.0f) * this->params.scale;
     float filterDelayComp = 1.0f;
     float jetRatio = 0.5f;
 
     p.baseParams = &this->params;
     p.frequency = freq;
-
     p.delaySamples = (this->params.sampleRate / freq) - filterDelayComp;
     p.jetDelaySamples = p.delaySamples * jetRatio;
     p.jetDelaySamples = std::clamp(p.jetDelaySamples, 2.0f, p.delaySamples * 0.9f);
@@ -198,9 +195,9 @@ void synthVoice::load(synthVoiceParams& params) {
 
     for (int note = 0; note < 127; note++) {
         synthPipe p;
-        synthPipeParams pParams = pipeParams(note);
+        synthPipeParams pParams = this->pipeParams(note);
         p.load(pParams);
-        this->pipes.push_back(p);
+        this->pipes.push_back(p);        
     }
 }
 

@@ -27,7 +27,7 @@ struct synthVoiceParams {
     float scale;
     float jetLength;
     float loopFeedbackGain;
-    
+
     float jetLowpassCoeff;
     float lowpassCoeff;
     float nonlinearCoeff;
@@ -51,6 +51,22 @@ struct synthVoiceParams {
         p.loopFeedbackGain = j.value("loopFeedbackGain", 0.9f);
 
         return p;
+    }
+
+    std::string toString() const {
+        return "baseFrequency=" + std::to_string(baseFrequency) + "\n" +
+            "sampleRate=" + std::to_string(sampleRate) + "\n" +
+            "reflection=" + std::to_string(reflection) + "\n" +
+            "excitationGain=" + std::to_string(excitationGain) + "\n" +
+            "noiseGain=" + std::to_string(noiseGain) + "\n" +
+            "jetGain=" + std::to_string(jetGain) + "\n" +
+            "scale=" + std::to_string(scale) + "\n" +
+            "jetLength=" + std::to_string(jetLength) + "\n" +
+            "loopFeedbackGain=" + std::to_string(loopFeedbackGain) + "\n" +
+            "jetLowpassCoeff=" + std::to_string(jetLowpassCoeff) + "\n" +
+            "lowpassCoeff=" + std::to_string(lowpassCoeff) + "\n" +
+            "nonlinearCoeff=" + std::to_string(nonlinearCoeff) + "\n" +
+            "lossFilterCoeff=" + std::to_string(lossFilterCoeff);
     }
 };
 
