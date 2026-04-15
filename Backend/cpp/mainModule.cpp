@@ -64,7 +64,6 @@ void mainModule::play(noteSignal& signal) {
 }
 
 void mainModule::processSample(float& outL, float& outR) {
-	float masterGain = 1.0f;
 	float synthL = 0.0f;
 	float synthR = 0.0f;
 	float modelL = 0.0f;
@@ -81,8 +80,8 @@ void mainModule::processSample(float& outL, float& outR) {
 	if (this->getSamplesActive())
 		samples.processSample(samplesL, samplesR);
 
-	outL = (synthL + modelL + samplesL) * masterGain;
-	outR = (synthR + modelR + samplesR) * masterGain;
+	outL = (synthL + modelL + samplesL) * this->masterGain;
+	outR = (synthR + modelR + samplesR) * this->masterGain;
 	outL = std::clamp(outL, -1.0f, 1.0f);
 	outR = std::clamp(outR, -1.0f, 1.0f);
 
@@ -138,4 +137,8 @@ std::map<int, std::string> mainModule::getVoicesNames() {
 	}
 
 	return result;
+}
+
+void mainModule::saveRecordings() {
+	this->buffer.save();
 }

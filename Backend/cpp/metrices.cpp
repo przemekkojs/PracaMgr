@@ -75,8 +75,9 @@ void metricBuffer::clear() {
 
 void metricBuffer::save() {
     // Sta³e do zapisu to:
-    // - SYNTH_OUTPUT_PATH (synthSignalBuffer)
-    // - MODEL_OUTPUT_PATH (modelSignalBuffer)
-    // TO ju¿ s¹ œcie¿ki do plików .wav, nie folder - plik trzeba po prostu nadpisaæ
+    // - SYNTH_OUTPUT_PATH (synthSignalBuffer - vector<float>)
+    // - MODEL_OUTPUT_PATH (modelSignalBuffer - vector<float>)
+    // To ju¿ s¹ œcie¿ki do plików .wav, nie folder - plik trzeba po prostu nadpisaæ
+    // Czyli robimy plik wav na podstawie surowych danych float
     // Trzeba zapisywaæ w mono, 48 kHz sample rate
 }
