@@ -1,8 +1,8 @@
 #include "../h/metrices.h"
 
 metricBuffer::metricBuffer() :
-	refSignalBuffer(),
-	compSignalBuffer(),
+	synthSignalBuffer(),
+	modelSignalBuffer(),
     queue() { }
 
 metricBuffer::~metricBuffer() { }
@@ -36,8 +36,8 @@ void metricBuffer::worker() {
         }
 
         for (auto& f : local) {
-            refSignalBuffer.push_back(f.ref);
-            compSignalBuffer.push_back(f.comp);
+            synthSignalBuffer.push_back(f.synth);
+            modelSignalBuffer.push_back(f.model);
         }
     }
 
@@ -48,8 +48,8 @@ void metricBuffer::worker() {
     }
 
     for (auto& f : local) {
-        refSignalBuffer.push_back(f.ref);
-        compSignalBuffer.push_back(f.comp);
+        synthSignalBuffer.push_back(f.synth);
+        modelSignalBuffer.push_back(f.model);
     }
 }
 
@@ -69,6 +69,14 @@ void metricBuffer::stop() {
 void metricBuffer::clear() {
     std::lock_guard<std::mutex> lock(mtx);
     queue.clear();
-    refSignalBuffer.clear();
-    compSignalBuffer.clear();
+    synthSignalBuffer.clear();
+    modelSignalBuffer.clear();
+}
+
+void metricBuffer::save() {
+    // Sta³e do zapisu to:
+    // - SYNTH_OUTPUT_PATH (synthSignalBuffer)
+    // - MODEL_OUTPUT_PATH (modelSignalBuffer)
+    // TO ju¿ s¹ œcie¿ki do plików .wav, nie folder - plik trzeba po prostu nadpisaæ
+    // Trzeba zapisywaæ w mono, 48 kHz sample rate
 }

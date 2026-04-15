@@ -57,8 +57,7 @@ private:
 	ma_engine engine;
 	ma_device device;
 
-	metricBuffer bufferSynth;
-	metricBuffer bufferModel;
+	metricBuffer buffer;
 
 	void processSample(float& outL, float& outR);
 	static void audioCallback(ma_device* device, void* output, const void* input, ma_uint32 frameCount);

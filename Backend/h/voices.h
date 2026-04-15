@@ -6,22 +6,13 @@
 
 #include <fstream>
 #include <sstream>
-#include <filesystem>
 #include <cmath>
 #include <cstdlib>
 
+#include "paths.h"
 #include "../lib/dsp/delay.h"
 #include "../lib/dsp/filters.h"
 #include "../lib/json.hpp"
-
-const std::filesystem::path base = std::filesystem::path(__FILE__).parent_path().parent_path();
-
-const auto VOICES_SAMPLES_PATH = base / "./local/samples/";
-const auto INSTRUMENT_PATH = base / "./local/samples/instrument";
-const std::string SAMPLE_FORMAT = ".wav";
-
-const std::string RELEASE_POSTFIX = "_release";
-const std::string ATTACK_POSTFIX = "_attack";
 
 const int LOWEST_NOTE = 48;
 const int NUMBER_OF_NOTES = 24;
@@ -61,14 +52,27 @@ struct synthVoiceParams {
     }
 };
 
+struct modelVoiceParams {
+    float baseFrequency;
+    float sampleRate;
+
+    static modelVoiceParams fromJson(const nlohmann::json& j) {
+        modelVoiceParams p;
+        p.baseFrequency = j.value("baseFrequency", 440.0f);
+        p.sampleRate = j.value("sampleRate", 48000.0f);
+        return p;
+    }
+};
+
 class voice {
 public:
-	voice(std::string name, int id, const synthVoiceParams& synthParams, bool active=false);
+	voice(std::string name, int id, const synthVoiceParams& synthParams, const modelVoiceParams& modelParams, bool active=false);
 
 	int getId() const { return this->id; }
 	bool isActive() const { return this->active; }
 	std::string getName() const { return this->name; }
     synthVoiceParams& const getSynthParams() { return this->synthParams; }
+    modelVoiceParams& const getModelParams() { return this->modelParams; }
 
 	void setActive(bool value) { this->active = value; }
 
@@ -77,6 +81,7 @@ public:
 
 private:
     synthVoiceParams synthParams;
+    modelVoiceParams modelParams;
 	std::string name;
 	bool active;
 	int id;

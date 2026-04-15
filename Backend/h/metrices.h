@@ -4,10 +4,11 @@
 #include <mutex>
 
 #include "signal.h"
+#include "paths.h"
 
 struct frame {
-	float ref;
-	float comp;
+	float synth;
+	float model;
 };
 
 class metricBuffer {
@@ -20,9 +21,10 @@ public:
 	void stop();
 	void worker();
 	void clear();
+	void save();
 
-	std::vector<float>& getRefBuffer() { return this->refSignalBuffer; }
-	std::vector<float>& getCompBuffer() { return this->compSignalBuffer; }
+	std::vector<float>& getRefBuffer() { return this->synthSignalBuffer; }
+	std::vector<float>& getCompBuffer() { return this->modelSignalBuffer; }
 
 private:
 	std::thread workerThread;
@@ -31,6 +33,6 @@ private:
 	std::atomic<bool> running{ false };
 	std::vector<frame> queue;
 
-	std::vector<float> refSignalBuffer;
-	std::vector<float> compSignalBuffer;
+	std::vector<float> synthSignalBuffer;
+	std::vector<float> modelSignalBuffer;
 };

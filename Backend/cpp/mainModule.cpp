@@ -44,21 +44,13 @@ void mainModule::play(noteSignal& signal) {
 	bool samplesActive = this->getSamplesActive();
 
 	if (signal.on) {
-		if (samplesActive) {
-			if (synthActive) {
-				bufferSynth.clear();
-				bufferSynth.start();
-			}
-
-			if (modelActive) {
-				bufferModel.clear();
-				bufferModel.start();
-			}
+		if (samplesActive && synthActive) {
+			buffer.clear();
+			buffer.start();
 		}
 	}
 	else {
-		bufferSynth.stop();
-		bufferModel.stop();
+		buffer.stop();
 	}
 
 	if (synthActive)
@@ -94,12 +86,11 @@ void mainModule::processSample(float& outL, float& outR) {
 	outL = std::clamp(outL, -1.0f, 1.0f);
 	outR = std::clamp(outR, -1.0f, 1.0f);
 
-	audioSignal ref{ samplesL, samplesR };
-	audioSignal synthSig{ synthL, synthR };
-	audioSignal modelSig{ modelL, modelR };
+	audioSignal ref { samplesL, samplesR };
+	audioSignal synthSig { synthL, synthR };
+	audioSignal modelSig { modelL, modelR };
 
-	bufferSynth.push(ref, synthSig);
-	bufferModel.push(ref, modelSig);
+	buffer.push(synthSig, modelSig);
 }
 
 void mainModule::audioCallback(ma_device* device, void* output, const void*, ma_uint32 frameCount) {

@@ -36,21 +36,11 @@ private:
 };
 
 struct synthPipeParams {
-	float frequency;
-	float sampleRate;
-	float excitationGain;
-	float reflection;
-	float jetGain;
-	float noiseGain;
-	float loopFeedbackGain;
+	synthVoiceParams* baseParams = nullptr;
 
+	float frequency;
 	float delaySamples;
 	float jetDelaySamples;
-
-	float jetLowpassCoeff;
-	float lowpassCoeff;
-	float nonlinearCoeff;
-	float lossFilterCoeff;
 
 	synthPipeParams() {}
 };
@@ -63,6 +53,7 @@ public:
 	void noteOn();
 	void noteOff();
 	float process();
+
 	float lossFilter(float x);
 	float lowpass(float x);
 	float jetLowpass(float x);
