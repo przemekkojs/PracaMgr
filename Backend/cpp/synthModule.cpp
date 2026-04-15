@@ -132,7 +132,9 @@ float synthPipe::process() {
     if (env > 0.9f) noiseAmount *= 1.5f;
 
     float tap = (float)writeIdx - params.delaySamples;
-    if (tap < 0) tap += (float)delayLine.size();
+
+    if (tap < 0)
+        tap += (float)delayLine.size();
 
     int i1 = (int)tap;
     int i2 = (i1 + 1) % delayLine.size();
