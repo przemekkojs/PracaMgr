@@ -1,21 +1,31 @@
 #pragma once
 
+#include <vector>
 #include "module.h"
+#include "voices.h"
 
 struct modelPipeParams {
+	modelVoiceParams baseParams;
 
+	modelPipeParams() : baseParams() {
+
+	}
 };
 
 class modelPipe {
 public:
 	modelPipe();
 
-	void load(modelVoiceParams& params);
+	void load(modelPipeParams& params);
 	void noteOn();
 	void noteOff();
 	float process();
 
+	modelPipeParams& getParams() { return this->params; }
+
 private:
+	modelPipeParams params;
+	bool playing;
 };
 
 class modelVoice {
@@ -44,4 +54,7 @@ public:
 	void processSample(float& outL, float& outR) override;
 	void load() override;
 	void unload() override;
+
+private:
+	std::vector<modelVoice> allVoices;
 };

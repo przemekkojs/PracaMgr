@@ -35,8 +35,6 @@ void synthModule::load() {
         synthVoice sV;
         sV.load(params);
         this->allVoices.push_back(sV);
-
-        std::cout << "Loaded " << v.getName() << std::endl;
     }
 }
 
@@ -179,12 +177,11 @@ synthPipeParams synthVoice::pipeParams(int note) {
 
     float freq = this->params.baseFrequency * std::pow(2.0f, (note - 69) / 12.0f) * this->params.scale;
     float filterDelayComp = 1.0f;
-    float jetRatio = 0.5f;
 
     p.baseParams = this->params;
     p.frequency = freq;
     p.delaySamples = (this->params.sampleRate / freq) - filterDelayComp;
-    p.jetDelaySamples = p.delaySamples * jetRatio;
+    p.jetDelaySamples = p.delaySamples * this->params.jetLength;
     p.jetDelaySamples = std::clamp(p.jetDelaySamples, 2.0f, p.delaySamples * 0.9f);
 
     return p;

@@ -73,12 +73,14 @@ struct synthVoiceParams {
 struct modelVoiceParams {
     float baseFrequency;
     float sampleRate;
+    float scale;
 
     static modelVoiceParams fromJson(const nlohmann::json& j) {
         modelVoiceParams p;
 
         p.baseFrequency = j.value("baseFrequency", 440.0f);
         p.sampleRate = j.value("sampleRate", 48000.0f);
+        p.scale = j.value("scale", 1.0f);
 
         return p;
     }

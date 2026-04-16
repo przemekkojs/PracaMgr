@@ -42,7 +42,11 @@ struct synthPipeParams {
 	float delaySamples;
 	float jetDelaySamples;
 
-	synthPipeParams() : baseParams() { }
+	synthPipeParams() : baseParams() {
+		this->frequency = 440.0f;
+		this->delaySamples = 100;
+		this->jetDelaySamples = 20;
+	}
 
 	std::string toString() const {
 		std::string result;
