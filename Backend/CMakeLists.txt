@@ -29,7 +29,7 @@ target_include_directories(signalsmith-dsp INTERFACE ${CMAKE_CURRENT_LIST_DIR}/i
 
 add_library(core
     cpp/mainModule.cpp
-    cpp/modelModule.cpp
+    
     cpp/module.cpp
     cpp/samplesModule.cpp
     cpp/signal.cpp

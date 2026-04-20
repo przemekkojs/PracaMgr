@@ -62,8 +62,6 @@ struct synthPipeParams {
 
 class synthPipe {
 public:
-	synthPipe();
-
 	void load(synthPipeParams& params);
 	void noteOn();
 	void noteOff();
@@ -78,9 +76,22 @@ public:
 	float whiteNoise();
 	float brownNoise();
 
+	virtual void writePipe(float input);
+	virtual bool isActive();
+	virtual float processEnvelope();
+	virtual float readPipe();
+	virtual float processPipeFilter(float pipeOut);
+	virtual float computeBreath(float env, float pipeOut);
+	virtual float processJet(float breath, float pipeOut);
+	virtual float processExcitation(float jet, float env);
+	virtual float processFeedback(float excitation, float pipeOut);	
+	virtual float processOutput(float pipeOut);
+
 	synthPipeParams& getParams() { return this->params; }
 
-private:
+protected:
+	synthPipe();
+
 	synthPipeParams params;
 
 	std::vector<float> delayLine;
@@ -103,12 +114,37 @@ private:
 	ADSR adsr;
 };
 
+class flutePipe : public synthPipe {
+public:
+	flutePipe() : synthPipe() {}
+
+private:
+};
+
+class stringPipe : public synthPipe {
+public:
+	stringPipe() : synthPipe() {}
+
+private:
+};
+
+class principalPipe : public synthPipe {
+public:
+	principalPipe() : synthPipe() {}
+};
+
+class reedPipe : public synthPipe {
+public:
+	reedPipe() : synthPipe() {}
+
+private:
+};
 
 class synthVoice {
 public:
 	synthVoice();
 
-	void load(synthVoiceParams& params);
+	template<class T> void load(synthVoiceParams& params);
 	void noteOn(int note);
 	void noteOff(int note);
 	float process();

@@ -2,9 +2,7 @@
 
 #include <iostream>
 
-synthModule::synthModule(std::shared_ptr<voices> voiceManager) : module(std::move(voiceManager)), allVoices() {
-
-}
+synthModule::synthModule(std::shared_ptr<voices> voiceManager) : module(std::move(voiceManager)), allVoices() { }
 
 void synthModule::play(const noteSignal& signal) {
     std::vector<voice> activeVoices = this->voiceManager->getActiveVoices();
@@ -33,7 +31,23 @@ void synthModule::load() {
     for (auto& v : this->voiceManager->getVoices()) {
         synthVoiceParams& params = v.getSynthParams();
         synthVoice sV;
-        sV.load(params);
+        voiceType vT = v.getVoiceType();
+
+        switch (vT) {
+        case FLUTE:
+            sV.load<flutePipe>(params);
+            break;
+        case STRING:
+            sV.load<stringPipe>(params);
+            break;
+        case PRINCIPAL:
+            sV.load<principalPipe>(params);
+            break;
+        case REED:
+            sV.load<reedPipe>(params);
+            break;
+        }
+
         this->allVoices.push_back(sV);
     }
 }
@@ -120,55 +134,96 @@ float synthPipe::nonlinear(float x, float env) {
     return input - (input * input * input);
 }
 
-float synthPipe::process() {
-    if (!adsr.isActive() || delayLine.empty() || jetDelayLine.empty()) {
-        return 0.0f;
-    }        
+bool synthPipe::isActive() {
+    return adsr.isActive() && !delayLine.empty() && !jetDelayLine.empty();
+}
 
-    float env = adsr.process();
-    float noiseAmount = params.baseParams.noiseGain * env;
+float synthPipe::processEnvelope() {
+    return adsr.process();
+}
 
-    if (env > 0.9f)
-        noiseAmount *= 1.5f;
-
+float synthPipe::readPipe() {
     float tap = (float)writeIdx - params.delaySamples;
-
     if (tap < 0)
         tap += (float)delayLine.size();
 
     int i1 = (int)tap;
     int i2 = (i1 + 1) % delayLine.size();
     float f = tap - (float)i1;
-    float pipeOut = delayLine[i1] + f * (delayLine[i2] - delayLine[i1]);
 
-    float filteredOut = pipeOut - lastSample;
-    lastSample = pipeOut * 0.995f;   
+    return delayLine[i1] + f * (delayLine[i2] - delayLine[i1]);
+}
 
-    float turbulence = whiteNoise() * noiseAmount;    
+float synthPipe::processPipeFilter(float pipeOut) {
+    float filtered = pipeOut - lastSample;
+    lastSample = pipeOut * 0.995f;
+    return filtered;
+}
+
+float synthPipe::computeBreath(float env, float pipeOut) {
+    float noiseAmount = params.baseParams.noiseGain * env;
+
+    if (env > 0.9f)
+        noiseAmount *= 1.5f;
+
+    float turbulence = whiteNoise() * noiseAmount;
     float driftNoise = ((float)rand() / RAND_MAX - 0.5f) * 0.002f;
-    smoothedNoise = (0.05f * turbulence) + (0.95f * smoothedNoise);    
-    windDrift = (0.9999f * windDrift) + driftNoise;
-    float breath = (params.baseParams.excitationGain * env) + smoothedNoise + windDrift;
+
+    smoothedNoise = 0.05f * turbulence + 0.95f * smoothedNoise;
+    windDrift = 0.9999f * windDrift + driftNoise;
+
+    return (params.baseParams.excitationGain * env) + smoothedNoise + windDrift;
+}
+
+float synthPipe::processJet(float breath, float pipeOut) {
     float pressureDiff = breath - (pipeOut * params.baseParams.reflection);
 
     jetDelayLine[jetIdx] = pressureDiff;
     int jetReadIdx = (jetIdx + 1) % jetDelayLine.size();
+
     float jetDelayed = jetDelayLine[jetReadIdx];
     jetIdx = jetReadIdx;
 
-    float x = std::clamp(jetDelayed, -1.0f, 1.0f);
-    float nonlinearOut = this->nonlinear(x, env);
-    float pipeInput = this->lowpass(nonlinearOut + (pipeOut * params.baseParams.loopFeedbackGain));
+    return jetDelayed;
+}
 
-    delayLine[writeIdx] = pipeInput;
+float synthPipe::processExcitation(float jet, float env) {
+    float x = std::clamp(jet, -1.0f, 1.0f);
+    return nonlinear(x, env);
+}
+
+float synthPipe::processFeedback(float excitation, float pipeOut) {
+    float input = excitation + (pipeOut * params.baseParams.loopFeedbackGain);
+    return lowpass(input);
+}
+
+void synthPipe::writePipe(float input) {
+    delayLine[writeIdx] = input;
     writeIdx = (writeIdx + 1) % delayLine.size();
+}
 
+float synthPipe::processOutput(float pipeOut) {
     float dcBlocker = pipeOut - lastPipeOut;
     lastPipeOut = pipeOut * 0.995f;
-
     return dcBlocker * 0.3f;
 }
 
+float synthPipe::process() {
+    if (!isActive())
+        return 0.0f;
+
+    float env = processEnvelope();
+    float pipeOut = readPipe();
+    float filteredOut = processPipeFilter(pipeOut);
+    float breath = computeBreath(env, pipeOut);
+    float jet = processJet(breath, pipeOut);
+    float excitation = processExcitation(jet, env);
+    float pipeInput = processFeedback(excitation, pipeOut);
+
+    writePipe(pipeInput);
+
+    return processOutput(pipeOut);
+}
 
 synthVoice::synthVoice() : pipes(), params() {}
 
@@ -187,12 +242,13 @@ synthPipeParams synthVoice::pipeParams(int note) {
     return p;
 }
 
+template<class T>
 void synthVoice::load(synthVoiceParams& params) {
     this->pipes.clear();
     this->params = params;
 
     for (int note = 0; note < 127; note++) {
-        synthPipe p;
+        T p;
         synthPipeParams pParams = this->pipeParams(note);
         p.load(pParams);
         this->pipes.push_back(p);        

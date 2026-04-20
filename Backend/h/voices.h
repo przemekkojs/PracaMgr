@@ -17,6 +17,8 @@
 const int LOWEST_NOTE = 48;
 const int NUMBER_OF_NOTES = 24;
 
+enum voiceType { FLUTE, STRING, PRINCIPAL, REED };
+
 struct synthVoiceParams {
     float baseFrequency;
     float sampleRate;
@@ -51,6 +53,16 @@ struct synthVoiceParams {
         p.loopFeedbackGain = j.value("loopFeedbackGain", 0.9f);
 
         return p;
+    }
+
+    static voiceType getVoiceType(char s) {
+        switch (s) {
+            case 'P': return voiceType::PRINCIPAL;
+            case 'F': return voiceType::FLUTE;
+            case 'S': return voiceType::STRING;
+            case 'R': return voiceType::REED;
+            default: throw std::exception("Invalid voice type");
+        }
     }
 
     std::string toString() const {
@@ -88,13 +100,13 @@ struct modelVoiceParams {
 
 class voice {
 public:
-	voice(std::string name, int id, const synthVoiceParams& synthParams, const modelVoiceParams& modelParams, bool active=false);
+	voice(std::string name, int id, voiceType vType, const synthVoiceParams& synthParams, bool active=false);
 
 	int getId() const { return this->id; }
 	bool isActive() const { return this->active; }
 	std::string getName() const { return this->name; }
     synthVoiceParams& const getSynthParams() { return this->synthParams; }
-    modelVoiceParams& const getModelParams() { return this->modelParams; }
+    voiceType& const getVoiceType() { return this->vType; }
 
 	void setActive(bool value) { this->active = value; }
 
@@ -102,8 +114,8 @@ public:
 	std::vector<std::string> getSamplesPath(int note) const;
 
 private:
+    voiceType vType;
     synthVoiceParams synthParams;
-    modelVoiceParams modelParams;
 	std::string name;
 	bool active;
 	int id;

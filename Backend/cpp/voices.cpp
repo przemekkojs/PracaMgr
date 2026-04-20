@@ -1,11 +1,11 @@
 #include "../h/voices.h"
 #include <iostream>
 
-voice::voice(std::string name, int id, const synthVoiceParams& synthParams, const modelVoiceParams& modelParams, bool active)
-	: synthParams(synthParams), modelParams(modelParams) {
+voice::voice(std::string name, int id, voiceType vType, const synthVoiceParams& synthParams, bool active) : synthParams(synthParams) {
 	this->name = name;
 	this->id = id;
 	this->active = active;
+	this->vType = vType;
 }
 
 std::string voice::getPath() const {
@@ -45,8 +45,13 @@ void voices::loadVoices() {
 		std::replace(name.begin(), name.end(), ' ', '-');
 
 		synthVoiceParams synthParams = synthVoiceParams::fromJson(item["params"]);
-		modelVoiceParams modelParams = modelVoiceParams::fromJson(item["params"]);
-		this->container.push_back(voice(name, id, synthParams, modelParams, false));
+
+		std::string typeStr = item.value("type", "");
+		if (typeStr.size() != 1) throw std::runtime_error("Invalid voice type format");
+		char typeChar = typeStr[0];
+		voiceType vType = synthVoiceParams::getVoiceType(typeChar);
+
+		this->container.push_back(voice(name, id, vType, synthParams, false));
 	}
 }
 
