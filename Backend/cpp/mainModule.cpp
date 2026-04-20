@@ -51,6 +51,9 @@ void mainModule::play(noteSignal& signal) {
 	}
 	else {
 		buffer.stop();
+		buffer.save();
+
+		std::cout << buffer.getCompBuffer().size() << " " << buffer.getRefBuffer().size() << std::endl;
 	}
 
 	if (synthActive)

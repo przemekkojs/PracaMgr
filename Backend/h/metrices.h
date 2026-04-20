@@ -2,6 +2,10 @@
 
 #include <vector>
 #include <mutex>
+#include <fstream>
+#include <vector>
+#include <cstdint>
+#include <iostream>
 
 #include "signal.h"
 #include "paths.h"
@@ -21,12 +25,14 @@ public:
 	void stop();
 	void worker();
 	void clear();
-	void save();
+	void save() const;
 
 	std::vector<float>& getRefBuffer() { return this->synthSignalBuffer; }
 	std::vector<float>& getCompBuffer() { return this->modelSignalBuffer; }
 
 private:
+	static void writeWavFloat(const std::string& path, const std::vector<float>& data);
+
 	std::thread workerThread;
 	std::mutex mtx;
 	std::condition_variable cv;

@@ -26,6 +26,10 @@ public:
 	const bool getModelActive() const { return this->model.isActive(); }
 	const float getMasterGain() const { return this->masterGain; }
 
+	std::string getMidiDeviceName() { return this->midiIn.getPortName(MIDI_PORT_ID); }
+	std::map<int, std::string> getVoicesNames();
+
+	bool setVoiceActive(int id, bool value) { return this->voiceManager->setActive(id, value); }
 	void setSamplesActive(bool value) { this->setModuleActive(value, this->samples); }
 	void setSynthActive(bool value) { this->setModuleActive(value, this->synth); }
 	void setModelActive(bool value) { this->setModuleActive(value, this->model); }
@@ -43,12 +47,6 @@ public:
 	void unloadModelModule() { this->unloadModule(this->model); }
 
 	void saveRecordings();
-
-	bool setVoiceActive(int id, bool value) { return this->voiceManager->setActive(id, value); }
-
-	std::string getMidiDeviceName() { return this->midiIn.getPortName(MIDI_PORT_ID); }
-
-	std::map<int, std::string> getVoicesNames();
 
 private:
 	std::shared_ptr<voices> voiceManager;

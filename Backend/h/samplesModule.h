@@ -54,7 +54,6 @@ public:
     std::mutex& getVoicesMutex() { return voicesMutex; }
 private:
     std::map<std::pair<int, int>, sample*> samples;
-
     std::vector<sampleVoice> newVoicesQueue;
     std::vector<sampleVoice> activeVoices;
     std::mutex queueMutex;    

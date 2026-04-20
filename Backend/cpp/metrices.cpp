@@ -73,11 +73,49 @@ void metricBuffer::clear() {
     modelSignalBuffer.clear();
 }
 
-void metricBuffer::save() {
-    // Sta³e do zapisu to:
-    // - SYNTH_OUTPUT_PATH (synthSignalBuffer - vector<float>)
-    // - MODEL_OUTPUT_PATH (modelSignalBuffer - vector<float>)
-    // To ju¿ s¹ œcie¿ki do plików .wav, nie folder - plik trzeba po prostu nadpisaæ
-    // Czyli robimy plik wav na podstawie surowych danych float
-    // Trzeba zapisywaæ w mono, 48 kHz sample rate
+void metricBuffer::save() const {
+    writeWavFloat(SYNTH_OUTPUT_PATH.string(), synthSignalBuffer);
+    writeWavFloat(MODEL_OUTPUT_PATH.string(), modelSignalBuffer);
+}
+
+void metricBuffer::writeWavFloat(const std::string& path, const std::vector<float>& data) {
+    std::ofstream file(path, std::ios::binary);
+
+    if (!file.is_open()) {
+        std::cerr << "ERROR: Cannot open file: " << path << std::endl;
+        return;
+    }
+
+    const int IEEE_FLOAT = 3;
+
+    int sampleRate = 48000;
+    short numChannels = 1;
+    short bitsPerSample = 32;
+    short audioFormat = IEEE_FLOAT;
+
+    int byteRate = sampleRate * numChannels * bitsPerSample / 8;
+    short blockAlign = numChannels * bitsPerSample / 8;
+    int dataSize = data.size() * blockAlign;
+    int chunkSize = 36 + dataSize;
+
+    file.write("RIFF", 4);
+    file.write(reinterpret_cast<const char*>(&chunkSize), 4);
+    file.write("WAVE", 4);
+
+    file.write("fmt ", 4);
+    int subchunk1Size = 16;
+    file.write(reinterpret_cast<const char*>(&subchunk1Size), 4);
+    file.write(reinterpret_cast<const char*>(&audioFormat), 2);
+    file.write(reinterpret_cast<const char*>(&numChannels), 2);
+    file.write(reinterpret_cast<const char*>(&sampleRate), 4);
+    file.write(reinterpret_cast<const char*>(&byteRate), 4);
+    file.write(reinterpret_cast<const char*>(&blockAlign), 2);
+    file.write(reinterpret_cast<const char*>(&bitsPerSample), 2);
+
+    file.write("data", 4);
+    file.write(reinterpret_cast<const char*>(&dataSize), 4);
+
+    file.write(reinterpret_cast<const char*>(data.data()), dataSize);
+
+    std::cout << "Saved: " << path << std::endl;
 }
