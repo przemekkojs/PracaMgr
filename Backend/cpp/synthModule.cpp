@@ -144,6 +144,7 @@ float synthPipe::processEnvelope() {
 
 float synthPipe::readPipe() {
     float tap = (float)writeIdx - params.delaySamples;
+
     if (tap < 0)
         tap += (float)delayLine.size();
 
@@ -167,7 +168,7 @@ float synthPipe::computeBreath(float env, float pipeOut) {
         noiseAmount *= 1.5f;
 
     float turbulence = whiteNoise() * noiseAmount;
-    float driftNoise = ((float)rand() / RAND_MAX - 0.5f) * 0.002f; // To trzeba zmieniæ na cokolwiek lepszego
+    float driftNoise = ((float)rand() / RAND_MAX - 0.5f) * 0.002f; // To trzeba zmieniï¿½ na cokolwiek lepszego
 
     smoothedNoise = 0.05f * turbulence + 0.95f * smoothedNoise;
     windDrift = 0.9999f * windDrift + driftNoise;
