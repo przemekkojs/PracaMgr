@@ -48,7 +48,7 @@ void mainModule::play(noteSignal& signal) {
 	bool samplesActive = this->getSamplesActive();
 
 	if (signal.on) {
-		if (modelActive && synthActive) {
+		if (modelActive && synthActive && samplesActive) {
 			buffer.clear();
 			buffer.start();
 		}
@@ -56,8 +56,6 @@ void mainModule::play(noteSignal& signal) {
 	else {
 		buffer.stop();
 		buffer.save();
-
-		std::cout << buffer.getSynthBuffer().size() << " " << buffer.getModelBuffer().size() << std::endl;
 	}
 
 	if (synthActive)
@@ -87,16 +85,14 @@ void mainModule::processSample(float& outL, float& outR) {
 	if (this->getSamplesActive())
 		samples.processSample(samplesL, samplesR);
 
-	outL = (synthL + modelL + samplesL) * this->masterGain;
-	outR = (synthR + modelR + samplesR) * this->masterGain;
-	outL = std::clamp(outL, -1.0f, 1.0f);
-	outR = std::clamp(outR, -1.0f, 1.0f);
+	outL = std::clamp((synthL + modelL + samplesL) * this->masterGain, -1.0f, 1.0f);
+	outR = std::clamp((synthR + modelR + samplesR) * this->masterGain, -1.0f, 1.0f);
 
-	audioSignal ref { samplesL, samplesR };
-	audioSignal synthSig { synthL, synthR };
-	audioSignal modelSig { modelL, modelR };
+	float samplesSig = (samplesL + samplesR) / 2;
+	float synthSig = (synthL + synthR) / 2;
+	float modelSig = (modelL + modelR) / 2;
 
-	buffer.push(synthSig, modelSig);
+	buffer.push(samplesSig, synthSig, modelSig);
 }
 
 void mainModule::audioCallback(ma_device* device, void* output, const void*, ma_uint32 frameCount) {

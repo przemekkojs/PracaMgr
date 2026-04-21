@@ -1,22 +1,24 @@
 #include "../h/metrices.h"
 
-metricBuffer::metricBuffer() : synthSignalBuffer(), modelSignalBuffer() {
+metricBuffer::metricBuffer() : samplesSignalBuffer(), synthSignalBuffer(), modelSignalBuffer() {
     this->running = false;
 }
 
 metricBuffer::~metricBuffer() { }
 
 void metricBuffer::init() {
+    this->samplesSignalBuffer.resize(SAMPLE_RATE * 10);
     this->synthSignalBuffer.resize(SAMPLE_RATE * 10);
     this->modelSignalBuffer.resize(SAMPLE_RATE * 10);
 }
 
-void metricBuffer::push(const audioSignal& synth, const audioSignal& model) {
+void metricBuffer::push(const float sample, const float synth, const float model) {
     if (!this->running)
         return;
 
-    this->synthSignalBuffer.push_back(synth.getMono());
-    this->modelSignalBuffer.push_back(model.getMono());
+    this->samplesSignalBuffer.push_back(sample);
+    this->synthSignalBuffer.push_back(synth);
+    this->modelSignalBuffer.push_back(model);
 }
 
 void metricBuffer::start() {
@@ -28,11 +30,13 @@ void metricBuffer::stop() {
 }
 
 void metricBuffer::clear() {
+    samplesSignalBuffer.clear();
     synthSignalBuffer.clear();
     modelSignalBuffer.clear();
 }
 
 void metricBuffer::save() const {
+    writeWavFloat(SAMPLE_OUTPUT_PATH.string(), samplesSignalBuffer);
     writeWavFloat(SYNTH_OUTPUT_PATH.string(), synthSignalBuffer);
     writeWavFloat(MODEL_OUTPUT_PATH.string(), modelSignalBuffer);
 }
@@ -45,7 +49,6 @@ void metricBuffer::writeWavFloat(const std::string& path, const std::vector<floa
         return;
     }
 
-    // TODO: Magic-numbers => Some global config
     const int sampleRate = SAMPLE_RATE;
     const short numChannels = OUT_CHANNELS;
     const short bitsPerSample = BIT_DEPTH;

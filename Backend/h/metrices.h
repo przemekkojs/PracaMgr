@@ -16,13 +16,14 @@ public:
 	metricBuffer();
 	~metricBuffer();
 
-	void push(const audioSignal& synth, const audioSignal& model);
+	void push(const float sample, const float synth, const float model);
 	void init();
 	void start();
 	void stop();
 	void clear();
 	void save() const;
 
+	std::vector<float>& getSamplesBuffer() { return this->samplesSignalBuffer; }
 	std::vector<float>& getSynthBuffer() { return this->synthSignalBuffer; }
 	std::vector<float>& getModelBuffer() { return this->modelSignalBuffer; }
 
@@ -31,6 +32,7 @@ private:
 
 	bool running;
 
+	std::vector<float> samplesSignalBuffer;
 	std::vector<float> synthSignalBuffer;
 	std::vector<float> modelSignalBuffer;
 };
