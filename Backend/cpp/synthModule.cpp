@@ -103,10 +103,17 @@ void synthPipe::noteOn() {
     this->adsr.noteOn();
 
     for (int i = 0; i < delayLine.size(); i++) {
-        delayLine[i] = 0.01f * ((float)rand() / RAND_MAX - 0.5f);
+        delayLine[i] = 0.01f * fastNoise();
     }
 
     lossState = 0;
+}
+
+float synthPipe::fastNoise() {
+    state ^= state << 13;
+    state ^= state >> 17;
+    state ^= state << 5;
+    return (state * 2.3283064365387e-10f) * 2.0f - 1.0f;
 }
 
 void synthPipe::noteOff() {
@@ -168,7 +175,7 @@ float synthPipe::computeBreath(float env, float pipeOut) {
         noiseAmount *= 1.5f;
 
     float turbulence = whiteNoise() * noiseAmount;
-    float driftNoise = ((float)rand() / RAND_MAX - 0.5f) * 0.002f; // To trzeba zmieni� na cokolwiek lepszego
+    float driftNoise = fastNoise() * 0.002f;
 
     smoothedNoise = 0.05f * turbulence + 0.95f * smoothedNoise;
     windDrift = 0.9999f * windDrift + driftNoise;

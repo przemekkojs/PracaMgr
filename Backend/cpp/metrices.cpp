@@ -36,6 +36,9 @@ void metricBuffer::clear() {
 }
 
 void metricBuffer::save() const {
+    if (!running)
+        return;
+
     writeWavFloat(SAMPLE_OUTPUT_PATH.string(), samplesSignalBuffer);
     writeWavFloat(SYNTH_OUTPUT_PATH.string(), synthSignalBuffer);
     writeWavFloat(MODEL_OUTPUT_PATH.string(), modelSignalBuffer);
@@ -77,6 +80,4 @@ void metricBuffer::writeWavFloat(const std::string& path, const std::vector<floa
     file.write(reinterpret_cast<const char*>(&dataSize), 4);
 
     file.write(reinterpret_cast<const char*>(data.data()), dataSize);
-
-    std::cout << "Saved: " << path << std::endl;
 }

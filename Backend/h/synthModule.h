@@ -75,6 +75,7 @@ public:
 	float pinkNoise();
 	float whiteNoise();
 	float brownNoise();
+	float fastNoise();
 
 	virtual void writePipe(float input);
 	virtual bool isActive();
@@ -110,6 +111,7 @@ protected:
 	float lastPipeOut = 0.0f;
 
 	std::mt19937 rng;
+	uint32_t state = 123456789;
 	std::uniform_real_distribution<float> noise{ -1.0f, 1.0f };
 	ADSR adsr;
 };
