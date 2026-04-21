@@ -2,35 +2,37 @@
 
 #include <vector>
 #include <mutex>
+#include <fstream>
+#include <vector>
+#include <cstdint>
+#include <iostream>
 
 #include "signal.h"
-
-struct frame {
-	float ref;
-	float comp;
-};
+#include "paths.h"
+#include "config.h"
 
 class metricBuffer {
 public:
 	metricBuffer();
 	~metricBuffer();
 
-	void push(const audioSignal& ref, const audioSignal& comp);
+	void push(const float sample, const float synth, const float model);
+	void init();
 	void start();
 	void stop();
-	void worker();
 	void clear();
+	void save() const;
 
-	std::vector<float>& getRefBuffer() { return this->refSignalBuffer; }
-	std::vector<float>& getCompBuffer() { return this->compSignalBuffer; }
+	std::vector<float>& getSamplesBuffer() { return this->samplesSignalBuffer; }
+	std::vector<float>& getSynthBuffer() { return this->synthSignalBuffer; }
+	std::vector<float>& getModelBuffer() { return this->modelSignalBuffer; }
 
 private:
-	std::thread workerThread;
-	std::mutex mtx;
-	std::condition_variable cv;
-	std::atomic<bool> running{ false };
-	std::vector<frame> queue;
+	static void writeWavFloat(const std::string& path, const std::vector<float>& data);
 
-	std::vector<float> refSignalBuffer;
-	std::vector<float> compSignalBuffer;
+	bool running;
+
+	std::vector<float> samplesSignalBuffer;
+	std::vector<float> synthSignalBuffer;
+	std::vector<float> modelSignalBuffer;
 };

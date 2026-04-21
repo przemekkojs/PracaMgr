@@ -1,6 +1,7 @@
 #pragma once
 
 #include "module.h"
+#include "config.h"
 #include "../lib/miniaudio.h"
 
 #include <map>
@@ -18,7 +19,7 @@ struct sample {
     std::vector<float> data;
     uint64_t frameCount = 0;
     uint32_t channels = 0;
-    uint32_t sampleRate = module::SAMPLE_RATE;
+    uint32_t sampleRate = SAMPLE_RATE;
     bool loaded = false;
 };
 
@@ -54,15 +55,15 @@ public:
     std::mutex& getVoicesMutex() { return voicesMutex; }
 private:
     std::map<std::pair<int, int>, sample*> samples;
-
     std::vector<sampleVoice> newVoicesQueue;
     std::vector<sampleVoice> activeVoices;
     std::mutex queueMutex;    
     std::mutex voicesMutex;
     std::thread voiceThread;
-    void voiceManagerThread();
-    bool running;    
+    
+    bool running;
 
+    void voiceManagerThread();
     void getSample(sampleVoice& v, float& outL, float& outR);    
     void loadSamples();
     void unloadSamples();

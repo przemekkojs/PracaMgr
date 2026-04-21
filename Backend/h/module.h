@@ -2,6 +2,7 @@
 
 #include "signal.h"
 #include "voices.h"
+#include "config.h"
 
 #include <memory>
 
@@ -19,7 +20,6 @@ public:
 	void setActive(bool value);
 
 	static constexpr int MAX_VOICES = 16;
-	static constexpr float SAMPLE_RATE = 48000.0f;
 
 protected:
 	std::shared_ptr<voices> voiceManager;

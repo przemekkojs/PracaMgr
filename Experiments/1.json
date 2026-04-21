@@ -1,0 +1,8 @@
+{
+	"duration": 5,
+	"name": "Test",
+	"description": "Eksperyment testowy"
+	"notes": [ 36, 48, 60, 72, 84 ],
+	"synth": true,
+	"model": true
+}

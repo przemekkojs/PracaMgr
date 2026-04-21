@@ -6,29 +6,21 @@
 
 #include <fstream>
 #include <sstream>
-#include <filesystem>
 #include <cmath>
 #include <cstdlib>
 
+#include "paths.h"
 #include "../lib/dsp/delay.h"
 #include "../lib/dsp/filters.h"
 #include "../lib/json.hpp"
 
-const std::filesystem::path base = std::filesystem::path(__FILE__).parent_path().parent_path();
-
-const auto VOICES_SAMPLES_PATH = base / "./local/samples/";
-const auto INSTRUMENT_PATH = base / "./local/samples/instrument";
-const std::string SAMPLE_FORMAT = ".wav";
-
-const std::string RELEASE_POSTFIX = "_release";
-const std::string ATTACK_POSTFIX = "_attack";
-
 const int LOWEST_NOTE = 48;
 const int NUMBER_OF_NOTES = 24;
 
+enum voiceType { FLUTE, STRING, PRINCIPAL, REED };
+
 struct synthVoiceParams {
     float baseFrequency;
-    float sampleRate;
     float reflection;
     float excitationGain;
     float noiseGain;
@@ -36,7 +28,7 @@ struct synthVoiceParams {
     float scale;
     float jetLength;
     float loopFeedbackGain;
-    
+
     float jetLowpassCoeff;
     float lowpassCoeff;
     float nonlinearCoeff;
@@ -44,8 +36,8 @@ struct synthVoiceParams {
 
     static synthVoiceParams fromJson(const nlohmann::json& j) {
         synthVoiceParams p;
+
         p.baseFrequency = j.value("baseFrequency", 440.0f);
-        p.sampleRate = j.value("sampleRate", 48000.0f);
         p.reflection = j.value("reflection", 0.5f);
         p.excitationGain = j.value("excitationGain", 0.3f);
         p.noiseGain = j.value("noiseGain", 0.0f);
@@ -57,18 +49,45 @@ struct synthVoiceParams {
         p.nonlinearCoeff = j.value("nonlinearCoeff", 1.0f);
         p.lossFilterCoeff = j.value("lossFilterCoeff", 0.3f);
         p.loopFeedbackGain = j.value("loopFeedbackGain", 0.9f);
+
         return p;
+    }
+
+    static voiceType getVoiceType(char s) {
+        switch (s) {
+            case 'P': return voiceType::PRINCIPAL;
+            case 'F': return voiceType::FLUTE;
+            case 'S': return voiceType::STRING;
+            case 'R': return voiceType::REED;
+            default: throw std::exception("Invalid voice type");
+        }
+    }
+
+    std::string toString() const {
+        return "baseFrequency=" + std::to_string(baseFrequency) + "\n" +
+            "reflection=" + std::to_string(reflection) + "\n" +
+            "excitationGain=" + std::to_string(excitationGain) + "\n" +
+            "noiseGain=" + std::to_string(noiseGain) + "\n" +
+            "jetGain=" + std::to_string(jetGain) + "\n" +
+            "scale=" + std::to_string(scale) + "\n" +
+            "jetLength=" + std::to_string(jetLength) + "\n" +
+            "loopFeedbackGain=" + std::to_string(loopFeedbackGain) + "\n" +
+            "jetLowpassCoeff=" + std::to_string(jetLowpassCoeff) + "\n" +
+            "lowpassCoeff=" + std::to_string(lowpassCoeff) + "\n" +
+            "nonlinearCoeff=" + std::to_string(nonlinearCoeff) + "\n" +
+            "lossFilterCoeff=" + std::to_string(lossFilterCoeff);
     }
 };
 
 class voice {
 public:
-	voice(std::string name, int id, const synthVoiceParams& synthParams, bool active=false);
+	voice(std::string name, int id, voiceType vType, const synthVoiceParams& synthParams, bool active=false);
 
 	int getId() const { return this->id; }
 	bool isActive() const { return this->active; }
 	std::string getName() const { return this->name; }
     synthVoiceParams& const getSynthParams() { return this->synthParams; }
+    voiceType& const getVoiceType() { return this->vType; }
 
 	void setActive(bool value) { this->active = value; }
 
@@ -76,6 +95,7 @@ public:
 	std::vector<std::string> getSamplesPath(int note) const;
 
 private:
+    voiceType vType;
     synthVoiceParams synthParams;
 	std::string name;
 	bool active;

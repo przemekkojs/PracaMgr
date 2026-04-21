@@ -9,6 +9,7 @@ samplesModule::samplesModule(std::shared_ptr<voices> voiceManager) : module(std:
 
 samplesModule::~samplesModule() {
     running = false;
+
     if (voiceThread.joinable())
         voiceThread.join();
 
@@ -33,31 +34,24 @@ void samplesModule::unload() {
 }
 
 void samplesModule::loadSamples() {
-    int loadedSamples = 0;
     const int predictedSamplesCount = this->voiceManager->getVoices().size() * NUMBER_OF_NOTES;
 
     ma_decoder decoder;
     ma_decoder_config config = ma_decoder_config_init(ma_format_f32, 0, 0);
 
     for (const auto& v : this->voiceManager->getVoices()) {
-        for (int note = LOWEST_NOTE; note < (LOWEST_NOTE + NUMBER_OF_NOTES); note++) {
+        for (int note = 0; note < 127; note++) {
             std::vector<std::string> paths = v.getSamplesPath(note);
 
-            if (paths.size() != 3) {
-                continue;
-            }
-
-            std::string sustainPath = paths[1];            
-
-            if (ma_decoder_init_file(sustainPath.c_str(), &config, &decoder) != MA_SUCCESS) {
-                continue;
-            }
+            if (paths.size() != 3) continue;
+            std::string sustainPath = paths[1];
+            if (ma_decoder_init_file(sustainPath.c_str(), &config, &decoder) != MA_SUCCESS) continue;
 
             sample* s = new sample();
             ma_uint64 frameCount;
-            ma_decoder_get_length_in_pcm_frames(&decoder, &frameCount);               
-            s->data.resize(frameCount * decoder.outputChannels);
             ma_uint64 framesRead;
+            ma_decoder_get_length_in_pcm_frames(&decoder, &frameCount);               
+            s->data.resize(frameCount * decoder.outputChannels);            
 
             if (ma_decoder_read_pcm_frames(&decoder, s->data.data(), frameCount, &framesRead) != MA_SUCCESS) {
                 ma_decoder_uninit(&decoder);
@@ -75,7 +69,6 @@ void samplesModule::loadSamples() {
             s->voiceId = v.getId();
 
             samples[{v.getId(), note}] = s;
-            loadedSamples++;
         }
     }
 }
@@ -242,7 +235,4 @@ void samplesModule::processSample(float& outL, float& outR) {
         outL += l;
         outR += r;
     }
-
-    outL *= 0.2f;
-    outR *= 0.2f;
 }

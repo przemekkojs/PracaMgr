@@ -2,6 +2,7 @@
   {
     "id": 1,
     "name": "Prinzipal 8",
+    "type": "P",
     "params": {
       "baseFrequency": 440.0,
       "reflection": 0.45,
@@ -18,6 +19,7 @@
   {
     "id": 2,
     "name": "Holzgedackt 8",
+    "type": "F",
     "params": {
       "baseFrequency": 440.0,
       "reflection": 0.35,
@@ -33,6 +35,7 @@
   {
     "id": 3,
     "name": "Gambe 8",
+    "type": "S",
     "params": {
       "baseFrequency": 440.0,
       "reflection": 0.5,
@@ -48,6 +51,7 @@
   {
     "id": 4,
     "name": "Flöte 8",
+    "type": "F",
     "params": {
       "baseFrequency": 440.0,
       "reflection": 0.3,
@@ -63,6 +67,7 @@
   {
     "id": 5,
     "name": "Salicional 8",
+    "type": "S",
     "params": {
       "baseFrequency": 440.0,
       "reflection": 0.48,

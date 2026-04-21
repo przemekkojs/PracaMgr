@@ -4,6 +4,7 @@
 
 #include "module.h"
 #include "voices.h"
+#include "config.h"
 
 #include <vector>
 #include <cmath>
@@ -23,12 +24,11 @@ public:
 	void setRelease(float seconds) { this->calculateRate(this->releaseRate, seconds); }
 	void setSustain(float seconds) { this->calculateRate(this->sustainLevel, seconds); }
 
-	void calculateRate(float& what, float seconds);
+	void calculateRate(float& what, float seconds) const;
 
 private:
 	AdsrState state = AdsrState::IDLE;
 	float value = 0.0f;
-	float sampleRate = 48000.0f;
 	float attackRate = 0.001f;
 	float decayRate = 0.0005f;
 	float releaseRate = 0.0008f;
@@ -36,33 +36,37 @@ private:
 };
 
 struct synthPipeParams {
-	float frequency;
-	float sampleRate;
-	float excitationGain;
-	float reflection;
-	float jetGain;
-	float noiseGain;
-	float loopFeedbackGain;
+	synthVoiceParams baseParams;
 
+	float frequency;
 	float delaySamples;
 	float jetDelaySamples;
 
-	float jetLowpassCoeff;
-	float lowpassCoeff;
-	float nonlinearCoeff;
-	float lossFilterCoeff;
+	synthPipeParams() : baseParams() {
+		this->frequency = 440.0f;
+		this->delaySamples = 100;
+		this->jetDelaySamples = 20;
+	}
 
-	synthPipeParams() {}
+	std::string toString() const {
+		std::string result;
+
+		result += "[baseParams]\n" + baseParams.toString() + "\n";
+		result += "frequency=" + std::to_string(frequency) + "\n";
+		result += "delaySamples=" + std::to_string(delaySamples) + "\n";
+		result += "jetDelaySamples=" + std::to_string(jetDelaySamples);
+
+		return result;
+	}
 };
 
 class synthPipe {
 public:
-	synthPipe();
-
 	void load(synthPipeParams& params);
 	void noteOn();
 	void noteOff();
 	float process();
+
 	float lossFilter(float x);
 	float lowpass(float x);
 	float jetLowpass(float x);
@@ -72,9 +76,22 @@ public:
 	float whiteNoise();
 	float brownNoise();
 
+	virtual void writePipe(float input);
+	virtual bool isActive();
+	virtual float processEnvelope();
+	virtual float readPipe();
+	virtual float processPipeFilter(float pipeOut);
+	virtual float computeBreath(float env, float pipeOut);
+	virtual float processJet(float breath, float pipeOut);
+	virtual float processExcitation(float jet, float env);
+	virtual float processFeedback(float excitation, float pipeOut);	
+	virtual float processOutput(float pipeOut);
+
 	synthPipeParams& getParams() { return this->params; }
 
-private:
+protected:
+	synthPipe();
+
 	synthPipeParams params;
 
 	std::vector<float> delayLine;
@@ -97,12 +114,37 @@ private:
 	ADSR adsr;
 };
 
+class flutePipe : public synthPipe {
+public:
+	flutePipe() : synthPipe() {}
+
+private:
+};
+
+class stringPipe : public synthPipe {
+public:
+	stringPipe() : synthPipe() {}
+
+private:
+};
+
+class principalPipe : public synthPipe {
+public:
+	principalPipe() : synthPipe() {}
+};
+
+class reedPipe : public synthPipe {
+public:
+	reedPipe() : synthPipe() {}
+
+private:
+};
 
 class synthVoice {
 public:
 	synthVoice();
 
-	void load(synthVoiceParams& params);
+	template<class T> void load(synthVoiceParams& params);
 	void noteOn(int note);
 	void noteOff(int note);
 	float process();

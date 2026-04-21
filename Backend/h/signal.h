@@ -25,16 +25,4 @@ struct ccSignal {
 	std::string toString() const { return "cc=" + std::to_string(cc) + " channel=" + std::to_string(channel) + " value=" + std::to_string(value); }
 };
 
-struct audioSignal {
-	float left = 0.0f;
-	float right = 0.0f;
-
-	void clear();
-	
-	inline float getMono() const noexcept {
-		return (left + right) * 0.5f;
-	}
-};
-
-const audioSignal EMPTY_AUDIO_SIGNAL = audioSignal();
 const noteSignal EMPTY_NOTE_SIGNAL = noteSignal(128, 0, false);

@@ -2,7 +2,7 @@
 
 #include <iostream>
 
-mainModule::mainModule() : voiceManager(std::make_shared<voices>()), samples(voiceManager), synth(voiceManager), model(voiceManager) {
+mainModule::mainModule() : voiceManager(std::make_shared<voices>()), samples(voiceManager), synth(voiceManager), model(voiceManager), buffer() {
 	unsigned int ports = midiIn.getPortCount();
 
 	if (ports == 0)
@@ -21,6 +21,10 @@ mainModule::mainModule() : voiceManager(std::make_shared<voices>()), samples(voi
 mainModule::~mainModule() {
 	ma_device_uninit(&device);
 	ma_engine_uninit(&engine);
+}
+
+void mainModule::init() {
+	this->buffer.init();
 }
 
 noteSignal mainModule::getSignal() {
@@ -44,21 +48,14 @@ void mainModule::play(noteSignal& signal) {
 	bool samplesActive = this->getSamplesActive();
 
 	if (signal.on) {
-		if (samplesActive) {
-			if (synthActive) {
-				bufferSynth.clear();
-				bufferSynth.start();
-			}
-
-			if (modelActive) {
-				bufferModel.clear();
-				bufferModel.start();
-			}
+		if (modelActive && synthActive && samplesActive) {
+			buffer.clear();
+			buffer.start();
 		}
 	}
 	else {
-		bufferSynth.stop();
-		bufferModel.stop();
+		buffer.stop();
+		buffer.save();
 	}
 
 	if (synthActive)
@@ -72,7 +69,6 @@ void mainModule::play(noteSignal& signal) {
 }
 
 void mainModule::processSample(float& outL, float& outR) {
-	float masterGain = 1.0f;
 	float synthL = 0.0f;
 	float synthR = 0.0f;
 	float modelL = 0.0f;
@@ -89,17 +85,14 @@ void mainModule::processSample(float& outL, float& outR) {
 	if (this->getSamplesActive())
 		samples.processSample(samplesL, samplesR);
 
-	outL = (synthL + modelL + samplesL) * masterGain;
-	outR = (synthR + modelR + samplesR) * masterGain;
-	outL = std::clamp(outL, -1.0f, 1.0f);
-	outR = std::clamp(outR, -1.0f, 1.0f);
+	outL = std::clamp((synthL + modelL + samplesL) * this->masterGain, -1.0f, 1.0f);
+	outR = std::clamp((synthR + modelR + samplesR) * this->masterGain, -1.0f, 1.0f);
 
-	audioSignal ref{ samplesL, samplesR };
-	audioSignal synthSig{ synthL, synthR };
-	audioSignal modelSig{ modelL, modelR };
+	float samplesSig = (samplesL + samplesR) / 2;
+	float synthSig = (synthL + synthR) / 2;
+	float modelSig = (modelL + modelR) / 2;
 
-	bufferSynth.push(ref, synthSig);
-	bufferModel.push(ref, modelSig);
+	buffer.push(samplesSig, synthSig, modelSig);
 }
 
 void mainModule::audioCallback(ma_device* device, void* output, const void*, ma_uint32 frameCount) {
@@ -113,8 +106,8 @@ void mainModule::audioCallback(ma_device* device, void* output, const void*, ma_
 		self->processSample(outL, outR);
 
 		out[i * 2 + 0] = outL;
-		out[i * 2 + 1] = outR;
-	}
+		out[i * 2 + 1] = outR;		
+	}	
 }
 
 void mainModule::initDevice() {
@@ -147,4 +140,8 @@ std::map<int, std::string> mainModule::getVoicesNames() {
 	}
 
 	return result;
+}
+
+void mainModule::saveRecordings() {
+	this->buffer.save();
 }

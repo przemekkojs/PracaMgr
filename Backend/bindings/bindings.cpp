@@ -49,7 +49,13 @@ PYBIND11_MODULE(organ_engine, m) {
 
         .def("get_midi_device_name", &mainModule::getMidiDeviceName)
 
-        .def("get_voices_names", &mainModule::getVoicesNames);
+        .def("get_voices_names", &mainModule::getVoicesNames)
+
+        .def("set_master_gain", &mainModule::setMasterGain)
+        .def("get_master_gain", &mainModule::getMasterGain)
+
+        .def("save_recordings", &mainModule::saveRecordings)
+        .def("init", &mainModule::init);
 
     m.attr("EMPTY_NOTE_SIGNAL") = EMPTY_NOTE_SIGNAL;
 }
