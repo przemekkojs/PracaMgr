@@ -48,7 +48,7 @@ void mainModule::play(noteSignal& signal) {
 	bool samplesActive = this->getSamplesActive();
 
 	if (signal.on) {
-		if (samplesActive && synthActive) {
+		if (modelActive && synthActive) {
 			buffer.clear();
 			buffer.start();
 		}

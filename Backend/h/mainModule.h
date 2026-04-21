@@ -66,6 +66,6 @@ private:
 	void initDevice();
 	void initEngine();
 
-	const int MIDI_PORT_ID = 1;
+	static constexpr int MIDI_PORT_ID = 1;
 	float masterGain = 1.0f;
 };
