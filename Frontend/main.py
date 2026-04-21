@@ -15,6 +15,7 @@ from organ_engine import MainModule, NoteSignal, EMPTY_NOTE_SIGNAL
 def run_engine(pipe: Connection):
     organ:MainModule = MainModule()
     running:bool = True
+    organ.init();
 
     while running:
         while pipe.poll():

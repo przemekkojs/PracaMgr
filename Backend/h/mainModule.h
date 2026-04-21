@@ -47,6 +47,7 @@ public:
 	void unloadModelModule() { this->unloadModule(this->model); }
 
 	void saveRecordings();
+	void init();
 
 private:
 	std::shared_ptr<voices> voiceManager;

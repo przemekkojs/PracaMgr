@@ -2,7 +2,7 @@
 
 #include <iostream>
 
-mainModule::mainModule() : voiceManager(std::make_shared<voices>()), samples(voiceManager), synth(voiceManager), model(voiceManager) {
+mainModule::mainModule() : voiceManager(std::make_shared<voices>()), samples(voiceManager), synth(voiceManager), model(voiceManager), buffer() {
 	unsigned int ports = midiIn.getPortCount();
 
 	if (ports == 0)
@@ -21,6 +21,10 @@ mainModule::mainModule() : voiceManager(std::make_shared<voices>()), samples(voi
 mainModule::~mainModule() {
 	ma_device_uninit(&device);
 	ma_engine_uninit(&engine);
+}
+
+void mainModule::init() {
+	this->buffer.init();
 }
 
 noteSignal mainModule::getSignal() {
@@ -53,7 +57,7 @@ void mainModule::play(noteSignal& signal) {
 		buffer.stop();
 		buffer.save();
 
-		std::cout << buffer.getCompBuffer().size() << " " << buffer.getRefBuffer().size() << std::endl;
+		std::cout << buffer.getSynthBuffer().size() << " " << buffer.getModelBuffer().size() << std::endl;
 	}
 
 	if (synthActive)
