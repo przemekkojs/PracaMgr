@@ -21,7 +21,6 @@ enum voiceType { FLUTE, STRING, PRINCIPAL, REED };
 
 struct synthVoiceParams {
     float baseFrequency;
-    float sampleRate;
     float reflection;
     float excitationGain;
     float noiseGain;
@@ -39,7 +38,6 @@ struct synthVoiceParams {
         synthVoiceParams p;
 
         p.baseFrequency = j.value("baseFrequency", 440.0f);
-        p.sampleRate = j.value("sampleRate", 48000.0f);
         p.reflection = j.value("reflection", 0.5f);
         p.excitationGain = j.value("excitationGain", 0.3f);
         p.noiseGain = j.value("noiseGain", 0.0f);
@@ -67,7 +65,6 @@ struct synthVoiceParams {
 
     std::string toString() const {
         return "baseFrequency=" + std::to_string(baseFrequency) + "\n" +
-            "sampleRate=" + std::to_string(sampleRate) + "\n" +
             "reflection=" + std::to_string(reflection) + "\n" +
             "excitationGain=" + std::to_string(excitationGain) + "\n" +
             "noiseGain=" + std::to_string(noiseGain) + "\n" +
@@ -79,22 +76,6 @@ struct synthVoiceParams {
             "lowpassCoeff=" + std::to_string(lowpassCoeff) + "\n" +
             "nonlinearCoeff=" + std::to_string(nonlinearCoeff) + "\n" +
             "lossFilterCoeff=" + std::to_string(lossFilterCoeff);
-    }
-};
-
-struct modelVoiceParams {
-    float baseFrequency;
-    float sampleRate;
-    float scale;
-
-    static modelVoiceParams fromJson(const nlohmann::json& j) {
-        modelVoiceParams p;
-
-        p.baseFrequency = j.value("baseFrequency", 440.0f);
-        p.sampleRate = j.value("sampleRate", 48000.0f);
-        p.scale = j.value("scale", 1.0f);
-
-        return p;
     }
 };
 

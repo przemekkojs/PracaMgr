@@ -7,8 +7,8 @@ metricBuffer::metricBuffer() : synthSignalBuffer(), modelSignalBuffer() {
 metricBuffer::~metricBuffer() { }
 
 void metricBuffer::init() {
-    this->synthSignalBuffer.resize(48000 * 10);
-    this->modelSignalBuffer.resize(48000 * 10);
+    this->synthSignalBuffer.resize(SAMPLE_RATE * 10);
+    this->modelSignalBuffer.resize(SAMPLE_RATE * 10);
 }
 
 void metricBuffer::push(const audioSignal& synth, const audioSignal& model) {
@@ -46,10 +46,10 @@ void metricBuffer::writeWavFloat(const std::string& path, const std::vector<floa
     }
 
     // TODO: Magic-numbers => Some global config
-    const int sampleRate = 48000;
-    const short numChannels = 1;
-    const short bitsPerSample = 32;
-    const short audioFormat = 3;
+    const int sampleRate = SAMPLE_RATE;
+    const short numChannels = OUT_CHANNELS;
+    const short bitsPerSample = BIT_DEPTH;
+    const short audioFormat = IEEE_FLOAT;
 
     int byteRate = sampleRate * numChannels * bitsPerSample / 8;
     short blockAlign = numChannels * bitsPerSample / 8;

@@ -235,7 +235,7 @@ synthPipeParams synthVoice::pipeParams(int note) {
 
     p.baseParams = this->params;
     p.frequency = freq;
-    p.delaySamples = (this->params.sampleRate / freq) - filterDelayComp;
+    p.delaySamples = (SAMPLE_RATE / freq) - filterDelayComp;
     p.jetDelaySamples = p.delaySamples * this->params.jetLength;
     p.jetDelaySamples = std::clamp(p.jetDelaySamples, 2.0f, p.delaySamples * 0.9f);
 
@@ -312,5 +312,5 @@ float ADSR::process() {
 }
 
 void ADSR::calculateRate(float& what, float seconds) const {
-    what = (1.0f / (seconds * this->sampleRate));
+    what = (1.0f / (seconds * SAMPLE_RATE));
 }

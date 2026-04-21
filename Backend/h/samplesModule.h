@@ -1,6 +1,7 @@
 #pragma once
 
 #include "module.h"
+#include "config.h"
 #include "../lib/miniaudio.h"
 
 #include <map>
@@ -18,7 +19,7 @@ struct sample {
     std::vector<float> data;
     uint64_t frameCount = 0;
     uint32_t channels = 0;
-    uint32_t sampleRate = module::SAMPLE_RATE;
+    uint32_t sampleRate = SAMPLE_RATE;
     bool loaded = false;
 };
 

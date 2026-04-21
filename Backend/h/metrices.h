@@ -9,6 +9,7 @@
 
 #include "signal.h"
 #include "paths.h"
+#include "config.h"
 
 class metricBuffer {
 public:

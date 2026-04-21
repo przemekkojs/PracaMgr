@@ -15,7 +15,7 @@ add_subdirectory(lib/pybind11)
 
 add_library(rtmidi STATIC
     lib/RtMidi.cpp
-    "cpp/miniaudio_impl.cpp" "h/paths.h")
+    "cpp/miniaudio_impl.cpp" "h/paths.h" "h/config.h")
 
 target_include_directories(rtmidi PUBLIC lib)
 target_compile_definitions(rtmidi PUBLIC __WINDOWS_MM__)
@@ -36,7 +36,7 @@ add_library(core
     cpp/synthModule.cpp
     cpp/voices.cpp
     cpp/miniaudio_impl.cpp
-    cpp/metrices.cpp "h/paths.h")
+    cpp/metrices.cpp "h/paths.h" "h/config.h")
 
 target_include_directories(core PUBLIC h)
 
@@ -46,7 +46,7 @@ target_link_libraries(core
     miniaudio
 )
 
-add_executable(Backend main.cpp "h/paths.h")
+add_executable(Backend main.cpp "h/paths.h" "h/config.h")
 
 target_link_libraries(Backend PRIVATE core)
 

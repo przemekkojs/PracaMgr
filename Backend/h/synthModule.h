@@ -4,6 +4,7 @@
 
 #include "module.h"
 #include "voices.h"
+#include "config.h"
 
 #include <vector>
 #include <cmath>
@@ -28,7 +29,6 @@ public:
 private:
 	AdsrState state = AdsrState::IDLE;
 	float value = 0.0f;
-	float sampleRate = 48000.0f;
 	float attackRate = 0.001f;
 	float decayRate = 0.0005f;
 	float releaseRate = 0.0008f;
