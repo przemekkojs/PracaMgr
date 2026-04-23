@@ -27,3 +27,23 @@ class textboxLabel(QWidget):
 
     def setText(self, text:str) -> None:
         self.tBox.setText(text)
+
+
+class VoiceManager:
+    def __init__(self, layout, on_toggle):
+        self.layout = layout
+        self.on_toggle = on_toggle
+
+        self.voiceBoxes = {}
+        self.voiceNames = {}
+
+    def set_voices(self, voices):
+        self.voiceNames = voices
+        self.voiceBoxes = {}
+
+        for k, name in voices.items():
+            box = QCheckBox(name)
+            self.voiceBoxes[k] = box
+            self.layout.addWidget(box)
+
+            box.clicked.connect(lambda state, x=k: self.on_toggle(x, state))

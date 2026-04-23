@@ -2,26 +2,21 @@ from PySide6.QtWidgets import QApplication, QCheckBox, QHBoxLayout, QVBoxLayout,
 from PySide6.QtCore import QTimer
 
 import sys
-import psutil
 import datetime
 import json
 
-from multiprocessing import Process, Pipe
-
-from engine import run_engine
-from widgets import checkboxLabel, textboxLabel
+from engine import EngineClient, EngineMonitor
+from widgets import checkboxLabel, textboxLabel, VoiceManager
 
 class ui(QWidget):
     def __init__(self):
         super().__init__()
 
         self.request_id = 0
-        self.pending_requests = {}
-
-        self.parent_conn, child_conn = Pipe()
-        self.engine_process = Process(target=run_engine, args=(child_conn,))
-        self.engine_process.start()
-        self.engine_ps = psutil.Process(self.engine_process.pid)
+        self.pending_requests = {}        
+        
+        self.engine = EngineClient()
+        self.monitor = EngineMonitor(self.engine.process.pid)
 
         self.ramUsageBuffer:list[float] = []
         self.cpuUsageBuffer:list[float] = []
@@ -40,6 +35,8 @@ class ui(QWidget):
         self.init_ui()
         self.initVoices()
         self.request_device_name()
+
+        self.voiceManager = VoiceManager(self.voicesBox, self.setVoiceActive)
 
     def init_ui(self):
         self.voicesBox:QVBoxLayout = QVBoxLayout()
@@ -97,18 +94,6 @@ class ui(QWidget):
 
     def initVoices(self):        
         self.request_voices_names()        
-
-    def recordingTimeToString(self) -> str:
-        fullSeconds:int = int(self.recordingTime // 1000)
-
-        while fullSeconds >= 60:
-            fullSeconds -= 60
-
-        fullMinutes:int = int((self.recordingTime // 1000) // 60)
-        secs_str:str = f"{fullSeconds}" if fullSeconds > 9 else f"0{fullSeconds}"
-        mins_str:str = f"{fullMinutes}" if fullMinutes > 9 else f"0{fullMinutes}"
-
-        return f"{mins_str}:{secs_str}"
     
     def saveOutput(self, path:str, data:dict) -> None:
         with open(path, 'w') as file:
@@ -121,26 +106,29 @@ class ui(QWidget):
 
     def setSynthActive(self):
         isChecked:bool = self.synthActiveBox.cBox.isChecked()
-        self.parent_conn.send({ "type": "SET_SYNTH", "data": isChecked })
+        self.engine.send({ "type": "SET_SYNTH", "data": isChecked })
 
     def setModelActive(self):
         isChecked:bool = self.modelActiveBox.cBox.isChecked() 
-        self.parent_conn.send({ "type": "SET_MODEL", "data": isChecked })
+        self.engine.send({ "type": "SET_MODEL", "data": isChecked })
 
     def setVoiceActive(self, voiceId:int, value:bool):
-        self.parent_conn.send({ "type": "SET_VOICE", "data": (voiceId, value) })
+        self.engine.send({ "type": "SET_VOICE", "data": (voiceId, value) })
 
     def boxSetVoiceActiveEvent(self, voiceId:int):
         self.setVoiceActive(voiceId, self.voiceBoxes[voiceId].isChecked())
 
     def setSamplesActive(self):
         isChecked:bool = self.samplesActiveBox.cBox.isChecked()
-        self.parent_conn.send({ "type": "SET_SAMPLES", "data": isChecked })
+        self.engine.send({ "type": "SET_SAMPLES", "data": isChecked })
+    
+    def send_midi(self, note):
+        self.engine.send({ "type": "MIDI", "data": note })
 
     def requestAny(self, what):
         self.request_id += 1
         rid = self.request_id
-        self.parent_conn.send({ "type": what, "id": rid })
+        self.engine.send({ "type": what, "id": rid })
         self.pending_requests[rid] = what
 
     def request_synth_active(self):
@@ -159,9 +147,7 @@ class ui(QWidget):
         self.requestAny("GET_VOICES_NAMES")
 
     def poll_engine(self):
-        while self.parent_conn.poll():
-            msg = self.parent_conn.recv()            
-
+        for msg in self.engine.poll():
             if msg["type"] == "GET_SYNTH_ACTIVE_RESULT":
                 rid, value = msg["id"], msg["value"]
                 self.synthActiveBox.cBox.setChecked(value)
@@ -207,16 +193,8 @@ class ui(QWidget):
     def setDeviceName(self, value:str):
         self.deviceNameLabel.setText(value)
 
-    def get_cpu(self):
-        cpu = self.engine_ps.cpu_percent(interval=0.1)
-        normalized = cpu / psutil.cpu_count()
-        return normalized
-
-    def get_ram(self):
-        return self.engine_ps.memory_info().rss / 1024 / 1024
-
     def get_stats(self):
-        return self.get_cpu(), self.get_ram()
+        return self.monitor.get_cpu(), self.monitor.get_ram()
     
     def update_stats(self):
         cpu, ram = self.get_stats()
@@ -226,14 +204,8 @@ class ui(QWidget):
     def closeEvent(self, event):
         self.ui_timer.stop()
         self.engine_timer.stop()
-
-        self.parent_conn.send({"type": "STOP"})
-        self.engine_process.join()
+        self.engine.stop()
         event.accept()
-
-    def send_midi(self, note):
-        self.parent_conn.send({ "type": "MIDI", "data": note })
-
 
 if __name__ == '__main__':
     app:QApplication = QApplication(sys.argv)

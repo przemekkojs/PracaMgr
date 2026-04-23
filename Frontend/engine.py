@@ -1,6 +1,8 @@
-from multiprocessing import Pipe
+from multiprocessing import Pipe, Process
 from multiprocessing.connection import Connection
+
 import sys
+import psutil
 
 sys.path.append("../Backend/python")
 from organ_engine import MainModule, NoteSignal, EMPTY_NOTE_SIGNAL
@@ -78,3 +80,44 @@ def run_engine(pipe: Connection):
 
         if s != EMPTY_NOTE_SIGNAL:
             organ.play(s)
+
+class EngineClient:
+    def __init__(self):
+        self.parent_conn, child_conn = Pipe()
+        self.process = Process(target=run_engine, args=(child_conn,))
+        self.process.start()
+
+        self.request_id = 0
+        self.pending_requests = {}
+
+    def send(self, msg):
+        self.parent_conn.send(msg)
+
+    def request(self, type_):
+        self.request_id += 1
+        rid = self.request_id
+        self.send({"type": type_, "id": rid})
+        self.pending_requests[rid] = type_
+        return rid
+
+    def poll(self):
+        messages = []
+        while self.parent_conn.poll():
+            messages.append(self.parent_conn.recv())
+        return messages
+
+    def stop(self):
+        self.send({"type": "STOP"})
+        self.process.join()
+
+class EngineMonitor:
+    def __init__(self, pid):
+        self.ps = psutil.Process(pid)
+
+    def get_cpu(self):
+        cpu = self.ps.cpu_percent(interval=0.1)
+        return cpu / psutil.cpu_count()
+
+    def get_ram(self):
+        return self.ps.memory_info().rss / 1024 / 1024
+    
