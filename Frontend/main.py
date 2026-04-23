@@ -1,9 +1,10 @@
-from PySide6.QtWidgets import QApplication, QCheckBox, QHBoxLayout, QVBoxLayout, QWidget, QLabel, QPushButton
+from PySide6.QtWidgets import QApplication, QCheckBox, QHBoxLayout, QVBoxLayout, QWidget, QLabel, QPushButton, QComboBox
 from PySide6.QtCore import QTimer
 
 import sys
 import datetime
 import json
+import os
 
 from engine import EngineClient, EngineMonitor
 from widgets import checkboxLabel, textboxLabel, VoiceManager
@@ -13,7 +14,7 @@ class ui(QWidget):
         super().__init__()
 
         self.request_id = 0
-        self.pending_requests = {}        
+        self.pending_requests = {} 
         
         self.engine = EngineClient()
         self.monitor = EngineMonitor(self.engine.process.pid)
@@ -32,13 +33,26 @@ class ui(QWidget):
         self.engine_timer.timeout.connect(self.poll_engine)
         self.engine_timer.start(10)
 
+        self.initExperiments()
         self.init_ui()
         self.initVoices()
-        self.request_device_name()
+        self.request_device_name()        
 
         self.voiceManager = VoiceManager(self.voicesBox, self.setVoiceActive)
 
     def init_ui(self):
+        self.buttons_box:QHBoxLayout = QHBoxLayout()
+        self.startTestButton:QPushButton = QPushButton("Start")
+        self.stopTestButton:QPushButton = QPushButton("Stop")
+        self.experimentDropdown: QComboBox = QComboBox()
+        self.experimentDropdown.addItems(self.experiment_files)
+        self.stopTestButton.setEnabled(False)
+        self.buttons_box.addWidget(self.startTestButton)
+        self.buttons_box.addWidget(self.stopTestButton)
+        self.buttons_box.addWidget(self.experimentDropdown)
+        self.startTestButton.clicked.connect(self.startTest)
+        self.stopTestButton.clicked.connect(self.stopTest)
+
         self.voicesBox:QVBoxLayout = QVBoxLayout()
         self.voicesBox.addWidget(QLabel("Głosy"))
         
@@ -68,7 +82,7 @@ class ui(QWidget):
 
         self.statsBox:QVBoxLayout = QVBoxLayout()
         
-        for item in [self.usagesBox, self.realismBox1, self.realismBox2]:
+        for item in [self.buttons_box, self.usagesBox, self.realismBox1, self.realismBox2]:
             self.statsBox.addLayout(item)
 
         self.synthActiveBox:checkboxLabel = checkboxLabel("Syntezator", self.setSynthActive)
@@ -91,6 +105,27 @@ class ui(QWidget):
         mainLayout.addWidget(self.deviceNameLabel)
         mainLayout.addLayout(layout)
         self.setLayout(mainLayout)
+
+    def initExperiments(self):
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+        self.experiments_path = os.path.join(base_dir, "../Experiments")
+        self.experiments_path = os.path.abspath(self.experiments_path)
+        self.experiment_files = []
+
+        for file in os.listdir(self.experiments_path):
+            if file.endswith(".json"):
+                self.experiment_files.append(file)
+
+    def startTest(self):
+        selected = self.experimentDropdown.currentText()
+        self.startTestButton.setEnabled(False)
+        self.stopTestButton.setEnabled(True)
+
+        print(selected)
+
+    def stopTest(self):
+        self.startTestButton.setEnabled(True)
+        self.stopTestButton.setEnabled(False)
 
     def initVoices(self):        
         self.request_voices_names()        
