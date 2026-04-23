@@ -1,4 +1,4 @@
-from PySide6.QtWidgets import QApplication, QCheckBox, QHBoxLayout, QVBoxLayout, QWidget, QLabel, QLineEdit, QPushButton
+from PySide6.QtWidgets import QApplication, QCheckBox, QHBoxLayout, QVBoxLayout, QWidget, QLabel, QPushButton
 from PySide6.QtCore import QTimer
 
 import sys
@@ -6,119 +6,10 @@ import psutil
 import datetime
 import json
 
-from multiprocessing.connection import Connection
 from multiprocessing import Process, Pipe
 
-sys.path.append("../Backend/python")
-from organ_engine import MainModule, NoteSignal, EMPTY_NOTE_SIGNAL
-
-def run_engine(pipe: Connection):
-    organ:MainModule = MainModule()
-    running:bool = True
-    organ.init();
-
-    while running:
-        while pipe.poll():
-            msg = pipe.recv()
-
-            if msg["type"] == "STOP":
-                running = False
-                break
-
-            elif msg["type"] == "NOTE":
-                organ.play(msg["data"])
-
-            elif msg["type"] == "SET_SAMPLES":
-                organ.set_samples_active(msg["data"])
-
-            elif msg["type"] == "SET_SYNTH":
-                organ.set_synth_active(msg["data"])
-
-            elif msg["type"] == "SET_MODEL":
-                organ.set_model_active(msg["data"])
-
-            elif msg["type"] == "GET_SYNTH_ACTIVE":
-                pipe.send({
-                    "type": "GET_SYNTH_ACTIVE_RESULT",
-                    "id": msg["id"],
-                    "value": organ.get_synth_active()
-                })
-
-            elif msg["type"] == "GET_SAMPLES_ACTIVE":
-                pipe.send({
-                    "type": "GET_SAMPLES_ACTIVE_RESULT",
-                    "id": msg["id"],
-                    "value": organ.get_samples_active()
-                })
-
-            elif msg["type"] == "GET_MODEL_ACTIVE":
-                pipe.send({
-                    "type": "GET_MODEL_ACTIVE_RESULT",
-                    "id": msg["id"],
-                    "value": organ.get_model_active()
-                })
-
-            elif msg["type"] == "SET_VOICE":
-                voiceId = msg["data"][0]
-                value = msg["data"][1]
-                res:bool = organ.set_voice_active(voiceId, value)
-
-                pipe.send({
-                    "type": "SET_VOICE_RESULT",
-                    "data": (voiceId, res)
-                })
-
-            elif msg['type'] == 'GET_DEVICE_NAME':
-                pipe.send({
-                    "type": "GET_DEVICE_NAME_RESULT",
-                    "value": organ.get_midi_device_name()
-                })
-
-            elif msg['type'] == 'GET_VOICES_NAMES':
-                pipe.send({
-                    "type": "GET_VOICES_NAMES_RESULT",
-                    "value": organ.get_voices_names()
-                })
-        
-        s:NoteSignal = organ.get_signal()
-
-        if s != EMPTY_NOTE_SIGNAL:
-            organ.play(s)
-        
-
-class checkboxLabel(QWidget):
-    def __init__(self, label_text:str, callback):
-        super().__init__()
-        self.cBox:QCheckBox = QCheckBox()
-        self.label:QLabel = QLabel(label_text)
-        
-        layout = QHBoxLayout()
-
-        layout.addWidget(self.cBox)
-        layout.addWidget(self.label)
-
-        self.setLayout(layout)
-
-        self.cBox.stateChanged.connect(callback)
-
-
-class textboxLabel(QWidget):
-    def __init__(self, label_text:str, readonly:bool=True):
-        super().__init__()
-        self.tBox:QLineEdit = QLineEdit()
-        self.tBox.setReadOnly(readonly)
-
-        self.label:QLabel = QLabel(label_text)
-        layout = QHBoxLayout()        
-
-        layout.addWidget(self.tBox)
-        layout.addWidget(self.label)
-
-        self.setLayout(layout)
-
-    def setText(self, text:str) -> None:
-        self.tBox.setText(text)
-
+from engine import run_engine
+from widgets import checkboxLabel, textboxLabel
 
 class ui(QWidget):
     def __init__(self):
@@ -132,8 +23,6 @@ class ui(QWidget):
         self.engine_process.start()
         self.engine_ps = psutil.Process(self.engine_process.pid)
 
-        self.recordingTime:float = 0
-        self.isRecording:bool = False
         self.ramUsageBuffer:list[float] = []
         self.cpuUsageBuffer:list[float] = []
         self.logsBuffer:list[str] = []
@@ -155,37 +44,7 @@ class ui(QWidget):
     def init_ui(self):
         self.voicesBox:QVBoxLayout = QVBoxLayout()
         self.voicesBox.addWidget(QLabel("Głosy"))
-
-        self.recordingBox:QVBoxLayout = QVBoxLayout()
-        self.recordingLabel:QLabel = QLabel("Rozpocznij nagrywanie...")
-        innerRecordingBox:QHBoxLayout = QHBoxLayout()
-
-        self.startRecordingButton:QPushButton = QPushButton("▶")
-        self.stopRecordingButton:QPushButton = QPushButton("■")
-        innerRecordingBox.addWidget(self.startRecordingButton)
-        innerRecordingBox.addWidget(self.stopRecordingButton)        
-        self.recordingBox.addLayout(innerRecordingBox)
-        self.recordingBox.addWidget(self.recordingLabel)        
-        self.startRecordingButton.clicked.connect(self.record)
-        self.stopRecordingButton.clicked.connect(self.stopRecording)
-        self.stopRecordingButton.setDisabled(True)
-
-        self.automaticTestBox:QVBoxLayout = QVBoxLayout()
-        self.automaticTestBox.addWidget(QLabel("Test automatyczny"))
-        self.startAutomaticTestButton:QPushButton = QPushButton("Start")
-        self.stopAutomaticTestButton:QPushButton = QPushButton("Stop")
-        buttonsBox:QHBoxLayout = QHBoxLayout()
-        self.stopAutomaticTestButton.setDisabled(True)
-        self.startAutomaticTestButton.clicked.connect(self.startAutomaticTest)
-        self.stopAutomaticTestButton.clicked.connect(self.stopAutomaticTest)
         
-        for item in [self.startAutomaticTestButton, self.stopAutomaticTestButton]:
-            buttonsBox.addWidget(item)
-
-        self.automaticTestBox.addLayout(buttonsBox)
-        self.automaticTestLabel:QLabel = QLabel("Komunikaty...")
-        self.automaticTestBox.addWidget(self.automaticTestLabel)
-
         layout = QHBoxLayout()
         self.setWindowTitle("Praca magisterska")
 
@@ -233,8 +92,6 @@ class ui(QWidget):
         self.deviceNameLabel:QLabel = QLabel("Brak wejściowego urządzenia MIDI")
         mainLayout:QVBoxLayout = QVBoxLayout()        
         mainLayout.addWidget(self.deviceNameLabel)
-        mainLayout.addLayout(self.recordingBox)
-        mainLayout.addLayout(self.automaticTestBox)
         mainLayout.addLayout(layout)
         self.setLayout(mainLayout)
 
@@ -248,36 +105,10 @@ class ui(QWidget):
             fullSeconds -= 60
 
         fullMinutes:int = int((self.recordingTime // 1000) // 60)
-
         secs_str:str = f"{fullSeconds}" if fullSeconds > 9 else f"0{fullSeconds}"
         mins_str:str = f"{fullMinutes}" if fullMinutes > 9 else f"0{fullMinutes}"
 
         return f"{mins_str}:{secs_str}"
-
-    def record(self):
-        self.isRecording = True
-        self.startRecordingButton.setDisabled(True)
-        self.stopRecordingButton.setDisabled(False)        
-        self.recordingLabel.setText(self.recordingTimeToString())   
-
-        self.cpuUsageBuffer.clear()
-        self.ramUsageBuffer.clear()     
-        self.recordingTime = 0
-
-    def stopRecording(self):
-        self.isRecording = False
-        outputFileName:str = f"output/{datetime.datetime.strftime(datetime.datetime.now(), "%d-%m-%Y-%H-%M-%S")}.json"
-
-        self.startRecordingButton.setDisabled(False)
-        self.stopRecordingButton.setDisabled(True)        
-        self.recordingLabel.setText(f"Czas nagrania: {self.recordingTimeToString()}, Raport: {outputFileName}")
-        
-        data:dict = {
-            'ram' : self.ramUsageBuffer,
-            'cpu' : self.cpuUsageBuffer
-        }
-
-        self.saveOutput(outputFileName, data)
     
     def saveOutput(self, path:str, data:dict) -> None:
         with open(path, 'w') as file:
@@ -287,145 +118,62 @@ class ui(QWidget):
         now:str = datetime.datetime.strftime(datetime.datetime.now(), "%d-%m-%Y %H:%M:%S")
         text:str = f"{now}\t{what}"
         self.logsBuffer.append(text)
-        self.updateLogsLabel()
-
-    def updateLogsLabel(self) -> None:
-        self.automaticTestLabel.setText(self.logsBuffer[-1])
-
-    def startAutomaticTest(self):
-        self.logsBuffer.clear()
-        self.addLog("Rozpoczęto test automatyczny")
-
-        self.startAutomaticTestButton.setDisabled(True)
-        self.stopAutomaticTestButton.setDisabled(False)
-
-    def stopAutomaticTest(self):
-        self.addLog("Zakończono test automatyczny")
-        outputFileName:str = f"output/automatic-test-{datetime.datetime.strftime(datetime.datetime.now(), "%d-%m-%Y-%H-%M-%S")}.json"
-
-        self.startAutomaticTestButton.setDisabled(False)
-        self.stopAutomaticTestButton.setDisabled(True)
-
-        data:dict = {
-            'ram' : self.ramUsageBuffer,
-            'cpu' : self.cpuUsageBuffer,
-            'logs' : self.logsBuffer
-        }
-
-        self.saveOutput(outputFileName, data)
 
     def setSynthActive(self):
         isChecked:bool = self.synthActiveBox.cBox.isChecked()
-
-        self.parent_conn.send({
-            "type": "SET_SYNTH",
-            "data": isChecked
-        })
+        self.parent_conn.send({ "type": "SET_SYNTH", "data": isChecked })
 
     def setModelActive(self):
-        isChecked:bool = self.modelActiveBox.cBox.isChecked()
-
-        self.parent_conn.send({
-            "type": "SET_MODEL",
-            "data": isChecked
-        })
+        isChecked:bool = self.modelActiveBox.cBox.isChecked() 
+        self.parent_conn.send({ "type": "SET_MODEL", "data": isChecked })
 
     def setVoiceActive(self, voiceId:int, value:bool):
-        print(voiceId)
-
-        self.parent_conn.send({
-            "type": "SET_VOICE",
-            "data": (voiceId, value)
-        })
+        self.parent_conn.send({ "type": "SET_VOICE", "data": (voiceId, value) })
 
     def boxSetVoiceActiveEvent(self, voiceId:int):
         self.setVoiceActive(voiceId, self.voiceBoxes[voiceId].isChecked())
 
     def setSamplesActive(self):
         isChecked:bool = self.samplesActiveBox.cBox.isChecked()
+        self.parent_conn.send({ "type": "SET_SAMPLES", "data": isChecked })
 
-        self.parent_conn.send({
-            "type": "SET_SAMPLES",
-            "data": isChecked
-        })
+    def requestAny(self, what):
+        self.request_id += 1
+        rid = self.request_id
+        self.parent_conn.send({ "type": what, "id": rid })
+        self.pending_requests[rid] = what
 
     def request_synth_active(self):
-        self.request_id += 1
-        rid = self.request_id
-
-        self.parent_conn.send({
-            "type": "GET_SYNTH_ACTIVE",
-            "id": rid
-        })
-
-        self.pending_requests[rid] = "GET_SYNTH_ACTIVE"
+        self.requestAny("GET_SYNTH_ACTIVE")
 
     def request_model_active(self):
-        self.request_id += 1
-        rid = self.request_id
-
-        self.parent_conn.send({
-            "type": "GET_MODEL_ACTIVE",
-            "id": rid
-        })
-
-        self.pending_requests[rid] = "GET_MODEL_ACTIVE"
+        self.requestAny("GET_MODEL_ACTIVE")
 
     def request_samples_active(self):
-        self.request_id += 1
-        rid = self.request_id
-
-        self.parent_conn.send({
-            "type": "GET_SAMPLES_ACTIVE",
-            "id": rid
-        })
-
-        self.pending_requests[rid] = "GET_SAMPLES_ACTIVE"
+        self.requestAny("GET_SAMPLES_ACTIVE")
 
     def request_device_name(self):
-        self.request_id += 1
-        rid = self.request_id
-
-        self.parent_conn.send({
-            "type": "GET_DEVICE_NAME",
-            "id": rid
-        })
-
-        self.pending_requests[rid] = "GET_DEVICE_NAME"
+        self.requestAny("GET_DEVICE_NAME")
 
     def request_voices_names(self):
-        self.request_id += 1
-        rid = self.request_id
-
-        self.parent_conn.send({
-            "type": "GET_VOICES_NAMES",
-            "id": rid
-        })
-
-        self.pending_requests[rid] = "GET_VOICES_NAMES"
+        self.requestAny("GET_VOICES_NAMES")
 
     def poll_engine(self):
         while self.parent_conn.poll():
-            msg = self.parent_conn.recv()
+            msg = self.parent_conn.recv()            
 
             if msg["type"] == "GET_SYNTH_ACTIVE_RESULT":
-                rid = msg["id"]
-                value = msg["value"]
-
+                rid, value = msg["id"], msg["value"]
                 self.synthActiveBox.cBox.setChecked(value)
                 del self.pending_requests[rid]
 
             elif msg["type"] == "GET_SAMPLES_ACTIVE_RESULT":
-                rid = msg["id"]
-                value = msg["value"]
-
+                rid, value = msg["id"], msg["value"]
                 self.samplesActiveBox.cBox.setChecked(value)
                 del self.pending_requests[rid]
 
             elif msg["type"] == "GET_MODEL_ACTIVE_RESULT":
-                rid = msg["id"]
-                value = msg["value"]
-
+                rid, value = msg["id"], msg["value"]
                 self.modelActiveBox.cBox.setChecked(value)
                 del self.pending_requests[rid]
 
@@ -441,11 +189,12 @@ class ui(QWidget):
                             break
 
             elif msg['type'] == 'GET_DEVICE_NAME_RESULT':
-                self.deviceNameLabel.setText(msg['value'])
+                value = msg["value"]
+                self.deviceNameLabel.setText(value)
 
             elif msg['type'] == 'GET_VOICES_NAMES_RESULT':
-                self.voicesNames = msg['value']
-
+                value = msg["value"]
+                self.voicesNames = value
                 self.voiceBoxes = {}
 
                 for k in self.voicesNames.keys():
@@ -459,26 +208,20 @@ class ui(QWidget):
         self.deviceNameLabel.setText(value)
 
     def get_cpu(self):
-        return self.engine_ps.cpu_percent(None)
+        cpu = self.engine_ps.cpu_percent(interval=0.1)
+        normalized = cpu / psutil.cpu_count()
+        return normalized
 
     def get_ram(self):
         return self.engine_ps.memory_info().rss / 1024 / 1024
 
     def get_stats(self):
-        cpu = self.get_cpu()
-        ram = self.get_ram()
-        return cpu, ram
+        return self.get_cpu(), self.get_ram()
     
     def update_stats(self):
         cpu, ram = self.get_stats()
         self.cpuUsageText.setText(f"{cpu:.1f}")
         self.ramUsageText.setText(f"{ram:.1f}")
-
-        if self.isRecording:
-            self.ramUsageBuffer.append(ram)
-            self.cpuUsageBuffer.append(cpu)
-            self.recordingTime += 500
-            self.recordingLabel.setText(self.recordingTimeToString())
 
     def closeEvent(self, event):
         self.ui_timer.stop()
@@ -489,10 +232,8 @@ class ui(QWidget):
         event.accept()
 
     def send_midi(self, note):
-        self.parent_conn.send({
-            "type": "MIDI",
-            "data": note
-        })
+        self.parent_conn.send({ "type": "MIDI", "data": note })
+
 
 if __name__ == '__main__':
     app:QApplication = QApplication(sys.argv)
