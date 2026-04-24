@@ -8,10 +8,10 @@ sys.path.append("../Backend/python")
 from organ_engine import MainModule, NoteSignal, EMPTY_NOTE_SIGNAL
 
 def note_on(note: int) -> NoteSignal:
-    pass
+    return NoteSignal(note, 0, True)
 
 def note_off(note: int) -> NoteSignal:
-    pass
+    return NoteSignal(note, 0, False)
 
 def run_engine(pipe: Connection):
     organ:MainModule = MainModule()
@@ -27,7 +27,8 @@ def run_engine(pipe: Connection):
                 break
 
             elif msg["type"] == "NOTE":
-                organ.play(msg["data"])
+                note, channel, on = msg["data"]
+                organ.play(NoteSignal(note, channel, on))
 
             elif msg["type"] == "SET_SAMPLES":
                 organ.set_samples_active(msg["data"])

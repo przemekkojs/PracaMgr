@@ -14,7 +14,7 @@ class TestWorker(QObject):
     finished = Signal()
     progress = Signal(dict)
 
-    def __init__(self, notes, voices, duration, send_midi, get_stats, set_voice_active, run_visqol ):
+    def __init__(self, notes, voices, duration, send_midi, get_stats, set_voice_active, run_visqol):
         super().__init__()
         self.notes = notes
         self.voices = voices
@@ -29,51 +29,57 @@ class TestWorker(QObject):
 
     @Slot()
     def run(self):
-        for voice in self.voices:
-            if not self.running:
-                break
+        print("WORKER STARTED")
 
-            self.set_voice_active(voice, True)
-
-            for note in self.notes:
+        try:
+            for voice in self.voices:
                 if not self.running:
                     break
+                
+                self.set_voice_active(voice, True, True)
 
-                current = { "voice": voice, "note": note, "ram": [], "cpu": [] }
-                noteOn = note_on(note)
-                noteOff = note_off(note)
-
-                self.send_midi(noteOn)
-
-                start_time = time.time()
-                interval = 0.1
-                next_tick = time.time()
-
-                while time.time() - start_time < self.duration:
+                for note in self.notes:
                     if not self.running:
                         break
 
-                    cpu, ram = self.get_stats()
-                    current["cpu"].append(cpu)
-                    current["ram"].append(ram)
+                    current = { "voice": voice, "note": note, "ram": [], "cpu": [] }
+                    noteOn = note_on(note)
+                    noteOff = note_off(note)
 
-                    next_tick += interval
-                    time.sleep(max(0, next_tick - time.time()))
+                    self.send_midi(noteOn)
 
-                self.send_midi(noteOff)
+                    start_time = time.time()
+                    interval = 0.1
+                    next_tick = time.time()
 
-                try:
-                    current["realism"] = self.run_visqol()
-                except Exception as e:
-                    current["realism"] = None
+                    while time.time() - start_time < self.duration:
+                        if not self.running:
+                            break
 
-                self.progress.emit(current)
+                        cpu, ram = self.get_stats()
+                        current["cpu"].append(cpu)
+                        current["ram"].append(ram)
 
-            self.set_voice_active(voice, False)
+                        next_tick += interval
+                        time.sleep(max(0, next_tick - time.time()))
 
-        self.finished.emit()
+                    self.send_midi(noteOff)
+
+                    try:
+                        current["realism"] = self.run_visqol()
+                    except Exception as e:
+                        current["realism"] = None
+
+                    self.progress.emit(current)
+
+                self.set_voice_active(voice, False, True)
+
+            self.finished.emit()
+        except Exception as e:
+            print("WORKER ERROR:", e)
 
     def stop(self):
+        print("WORKER STOPPED")
         self.running = False
 
 
@@ -188,58 +194,70 @@ class ui(QWidget):
                 self.experiment_files.append(file)
 
     def startTest(self):
-        selected:str = self.experimentDropdown.currentText()
+        selected: str = self.experimentDropdown.currentText()
+
         self.startTestButton.setEnabled(False)
-        self.stopTestButton.setEnabled(True)        
+        self.stopTestButton.setEnabled(True)
+
         self.result_obj.clear()
-        self.current_test = selected[:-5] # TODO: nazwa pliku bez rozszerzenia        
+        self.current_test = selected[:-5]
 
         with open(f"{self.experiments_path}\\{selected}", 'r') as file:
-            data:dict = json.load(file)
+            data: dict = json.load(file)
             self.result_obj = data.copy()
 
-        if (not data or len(data) == 0):
+        if not data or len(data) == 0:
             self.stopTest()
             return
 
         self.result_obj["actions"] = []
+        duration: int = int(data["duration"])
+        notes: list[int] = [int(x) for x in data["notes"]]
+        voices: list[int] = [int(x) for x in data["voices"]]
 
-        duration:int = int(data["duration"])
-        notes:list[int] = [int(x) for x in data["notes"]]
-        voices:list[int] = [int(x) for x in data["voices"]]
-        samplesActive:bool = bool(data["samples"])
-        modelActive:bool = bool(data["model"])
-        synthActive:bool = bool(data["synth"])
+        samplesActive: bool = bool(data["samples"])
+        modelActive: bool = bool(data["model"])
+        synthActive: bool = bool(data["synth"])
 
         self.forceSamplesActive(samplesActive)
         self.forceModelActive(modelActive)
         self.forceSynthActive(synthActive)
 
-        for voice in voices:
-            self.setVoiceActive(voice, True)
+        self.th = QThread()
+        self.worker = TestWorker(
+            notes=notes,
+            voices=voices,
+            duration=duration,
+            send_midi=self.send_midi,
+            get_stats=self.get_stats,
+            set_voice_active=self.setVoiceActive,
+            run_visqol=self.runViSQOL
+        )
 
-            for note in notes:
-                current:dict = {}
-                current["voice"] = voice
-                current["note"] = note
-                current["ram"] = []
-                current["cpu"] = []                
+        self.worker.moveToThread(self.th)
 
-                noteOn = note_on(note)
-                noteOff = note_off(note)
+        self.th.started.connect(self.worker.run)
 
-                # Tutaj trzeba zrobić automatyczne:
-                # 1. self.send_midi(noteOn)
-                # 2. przez duration sekund co 100ms pobierać statystyki i zapisywać do current["ram"] i current["cpu"]. To jest get_stats() - zwraca (cpu, ram)
-                # 3. po duration sekundach wysyłać self.send_midi(noteOff)
+        self.worker.finished.connect(self.th.quit)
+        self.worker.finished.connect(self.worker.deleteLater)
+        self.th.finished.connect(self.th.deleteLater)
 
-                current["realism"] = self.runViSQOL()
-                self.result_obj["actions"].append(current)
+        self.worker.progress.connect(self._on_worker_progress)
+        self.worker.finished.connect(self._on_worker_finished)
 
-            self.setVoiceActive(voice, False)
+        self.th.start()
 
+    def _on_worker_progress(self, current):
+        if "actions" in self.result_obj:
+            self.result_obj["actions"].append(current)
+
+    def _on_worker_finished(self):
+        self.stopTest()
 
     def stopTest(self):
+        if hasattr(self, "worker"):
+            self.worker.stop()
+
         self.startTestButton.setEnabled(True)
         self.stopTestButton.setEnabled(False)
 
@@ -247,8 +265,8 @@ class ui(QWidget):
         self.samplesActiveBox.cBox.setCheckable(True)
         self.synthActiveBox.cBox.setCheckable(True)
 
-        now:str = datetime.datetime.now().strftime("%d-%m-%Y-%H-%M-%S")
-        path:str = f"{self.result_path}\\{self.current_test}-{now}.json"
+        now: str = datetime.datetime.now().strftime("%d-%m-%Y-%H-%M-%S")
+        path: str = f"{self.result_path}\\{self.current_test}-{now}.json"
 
         with open(path, 'w') as file:
             json.dump(self.result_obj, fp=file)
@@ -278,18 +296,23 @@ class ui(QWidget):
         isChecked:bool = self.modelActiveBox.cBox.isChecked() 
         self.engine.send({ "type": "SET_MODEL", "data": isChecked })
 
-    def setVoiceActive(self, voiceId:int, value:bool) -> None:
-        self.engine.send({ "type": "SET_VOICE", "data": (voiceId, value) })
+    def setVoiceActive(self, voiceId:int, value:bool, update_ui:bool=False) -> None:        
+        if update_ui:
+            item:QCheckBox = self.voicesBox.itemAt(voiceId).widget()
+            item.setChecked(value)
 
     def boxSetVoiceActiveEvent(self, voiceId:int):
-        self.setVoiceActive(voiceId, self.voiceBoxes[voiceId].isChecked())
+        print("2", voiceId, value)
+        value = self.voiceBoxes[voiceId].isChecked()
+        self.setVoiceActive(voiceId, value)
+        self.engine.send({ "type": "SET_VOICE", "data": (voiceId, value) })
 
     def setSamplesActive(self):
         isChecked:bool = self.samplesActiveBox.cBox.isChecked()
         self.engine.send({ "type": "SET_SAMPLES", "data": isChecked })
     
     def send_midi(self, note):
-        self.engine.send({ "type": "MIDI", "data": note })
+        self.engine.send({ "type": "MIDI", "data": (note.note, note.channel, note.on) })
 
     def requestAny(self, what):
         self.request_id += 1
@@ -371,6 +394,7 @@ class ui(QWidget):
         self.ui_timer.stop()
         self.engine_timer.stop()
         self.engine.stop()
+        self.worker.stop()
         event.accept()
 
 if __name__ == '__main__':
