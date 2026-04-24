@@ -7,6 +7,11 @@ import psutil
 sys.path.append("../Backend/python")
 from organ_engine import MainModule, NoteSignal, EMPTY_NOTE_SIGNAL
 
+def note_on(note: int) -> NoteSignal:
+    pass
+
+def note_off(note: int) -> NoteSignal:
+    pass
 
 def run_engine(pipe: Connection):
     organ:MainModule = MainModule()

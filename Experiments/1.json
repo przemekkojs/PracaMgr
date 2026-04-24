@@ -1,8 +1,10 @@
 {
 	"duration": 5,
 	"name": "Test",
-	"description": "Eksperyment testowy"
+	"description": "Eksperyment testowy",
 	"notes": [ 36, 48, 60, 72, 84 ],
 	"synth": true,
-	"model": true
+	"model": true,
+	"samples": true,
+	"voices": [1, 2, 3, 4, 5]
 }

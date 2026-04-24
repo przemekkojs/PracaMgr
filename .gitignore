@@ -9,3 +9,5 @@ out/
 *.pyc
 
 Frontend/output/*.json
+
+Experiments/Results/*.json
