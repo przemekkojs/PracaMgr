@@ -271,8 +271,6 @@ class ui(QWidget):
         with open(path, 'w') as file:
             json.dump(self.result_obj, fp=file)
 
-        self.result_obj.clear()
-
     def runViSQOL(self) -> int:
         pass
 
@@ -296,23 +294,23 @@ class ui(QWidget):
         isChecked:bool = self.modelActiveBox.cBox.isChecked() 
         self.engine.send({ "type": "SET_MODEL", "data": isChecked })
 
-    def setVoiceActive(self, voiceId:int, value:bool, update_ui:bool=False) -> None:        
+    def setVoiceActive(self, voiceId:int, value:bool, update_ui:bool=False) -> None:
+        self.engine.send({ "type": "SET_VOICE", "data": (voiceId, value) })
+
         if update_ui:
             item:QCheckBox = self.voicesBox.itemAt(voiceId).widget()
             item.setChecked(value)
 
     def boxSetVoiceActiveEvent(self, voiceId:int):
-        print("2", voiceId, value)
         value = self.voiceBoxes[voiceId].isChecked()
         self.setVoiceActive(voiceId, value)
-        self.engine.send({ "type": "SET_VOICE", "data": (voiceId, value) })
 
     def setSamplesActive(self):
         isChecked:bool = self.samplesActiveBox.cBox.isChecked()
         self.engine.send({ "type": "SET_SAMPLES", "data": isChecked })
     
     def send_midi(self, note):
-        self.engine.send({ "type": "MIDI", "data": (note.note, note.channel, note.on) })
+        self.engine.send({ "type": "NOTE", "data": (note.note, note.channel, note.on) })
 
     def requestAny(self, what):
         self.request_id += 1

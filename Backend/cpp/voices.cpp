@@ -56,6 +56,8 @@ void voices::loadVoices() {
 }
 
 bool voices::setActive(int id, bool value) {
+	std::cout << id << " " << value << std::endl;
+
 	for (auto& v : this->container) {
 		if (v.getId() == id) {
 			v.setActive(value);
