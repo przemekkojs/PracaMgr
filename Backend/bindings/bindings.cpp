@@ -55,7 +55,10 @@ PYBIND11_MODULE(organ_engine, m) {
         .def("get_master_gain", &mainModule::getMasterGain)
 
         .def("save_recordings", &mainModule::saveRecordings)
-        .def("init", &mainModule::init);
+        .def("init", &mainModule::init)
+
+        .def("make_test_synth_sample", &mainModule::makeTestSynthSample)
+        .def("make_test_sample", &mainModule::makeTestSample);
 
     m.attr("EMPTY_NOTE_SIGNAL") = EMPTY_NOTE_SIGNAL;
 }

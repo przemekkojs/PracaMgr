@@ -28,6 +28,7 @@ def run_engine(pipe: Connection):
 
             elif msg["type"] == "NOTE":
                 note, channel, on = msg["data"]
+                print(msg)
                 organ.play(NoteSignal(note, channel, on))
 
             elif msg["type"] == "SET_SAMPLES":

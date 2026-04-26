@@ -1,0 +1,13 @@
+{
+  "baseFrequency": 440.0,
+  "reflection": 0.45,
+  "excitationGain": 0.45,
+  "noiseGain": 0.01,
+  "jetLength": 0.48,
+  "jetLowpassCoeff": 0.3,
+  "lowpassCoeff": 0.6,
+  "nonlinearCoeff": 0.8,
+  "lossFilterCoeff": 0.15,
+  "loopFeedbackGain": 0.8,
+  "scale": 1.0
+}

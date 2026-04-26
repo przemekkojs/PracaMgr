@@ -8,6 +8,7 @@
 #include "samplesModule.h"
 #include "voices.h"
 #include "metrices.h"
+#include "testModule.h"
 
 class mainModule {
 public:
@@ -49,11 +50,15 @@ public:
 	void saveRecordings();
 	void init();
 
+	void makeTestSynthSample() { this->test.makeSynth(); }
+	void makeTestSample(int voiceId) { this->test.makeSample(this->voiceManager->getVoices()[voiceId].getPath() + "\\60.wav"); }
+
 private:
 	std::shared_ptr<voices> voiceManager;
 	samplesModule samples;
 	synthModule synth;
 	synthModule model;
+	testModule test;
 	RtMidiIn midiIn;
 
 	ma_engine engine;

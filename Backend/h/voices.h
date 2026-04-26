@@ -43,7 +43,7 @@ struct synthVoiceParams {
         p.noiseGain = j.value("noiseGain", 0.0f);
         p.scale = j.value("scale", 1.0f);
         p.jetGain = j.value("jetGain", 0.0f);
-        p.jetLength = j.value("jLength", 0.5f);
+        p.jetLength = j.value("jetLength", 0.5f);
         p.jetLowpassCoeff = j.value("jetLowpassCoeff", 0.5f);
         p.lowpassCoeff = j.value("lowpassCoeff", 0.9f);
         p.nonlinearCoeff = j.value("nonlinearCoeff", 1.0f);

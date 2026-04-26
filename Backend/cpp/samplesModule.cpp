@@ -47,7 +47,7 @@ void samplesModule::loadSamples() {
             std::string sustainPath = paths[1];
             if (ma_decoder_init_file(sustainPath.c_str(), &config, &decoder) != MA_SUCCESS) continue;
 
-            sample* s = new sample();
+            samplePipe* s = new samplePipe();
             ma_uint64 frameCount;
             ma_uint64 framesRead;
             ma_decoder_get_length_in_pcm_frames(&decoder, &frameCount);               
@@ -91,7 +91,7 @@ void samplesModule::play(const noteSignal& signal) {
             auto it = samples.find({ id, note });
             if (it == samples.end()) continue;
 
-            sample* s = it->second;
+            samplePipe* s = it->second;
             if (!s || !s->loaded) continue;            
 
             sampleVoice voice;

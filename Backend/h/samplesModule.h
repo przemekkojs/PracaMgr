@@ -12,7 +12,7 @@
 #include <chrono>
 #include <memory>
 
-struct sample {
+struct samplePipe {
     int voiceId = 0;
     int note = 0;
 
@@ -24,7 +24,7 @@ struct sample {
 };
 
 struct sampleVoice {
-    sample* s = nullptr;
+    samplePipe* s = nullptr;
     int note = -1;
     float cursor = 0.0f;
     float increment = 1.0f;
@@ -50,11 +50,11 @@ public:
     void load() override;
     void unload() override;    
 
-    const std::map<std::pair<int, int>, sample*>& getSamples() const { return samples; }
+    const std::map<std::pair<int, int>, samplePipe*>& getSamples() const { return samples; }
     std::vector<sampleVoice>& getActiveVoices() { return activeVoices; }
     std::mutex& getVoicesMutex() { return voicesMutex; }
 private:
-    std::map<std::pair<int, int>, sample*> samples;
+    std::map<std::pair<int, int>, samplePipe*> samples;
     std::vector<sampleVoice> newVoicesQueue;
     std::vector<sampleVoice> activeVoices;
     std::mutex queueMutex;    

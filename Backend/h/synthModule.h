@@ -62,6 +62,8 @@ struct synthPipeParams {
 
 class synthPipe {
 public:
+	synthPipe();
+
 	void load(synthPipeParams& params);
 	void noteOn();
 	void noteOff();
@@ -91,8 +93,6 @@ public:
 	synthPipeParams& getParams() { return this->params; }
 
 protected:
-	synthPipe();
-
 	synthPipeParams params;
 
 	std::vector<float> delayLine;
