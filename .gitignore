@@ -9,5 +9,8 @@ out/
 *.pyc
 
 Frontend/output/*.json
+Frontend/visqol-3.3.3/
 
 Experiments/Results/*.json
+
+Experiments/Reports/*

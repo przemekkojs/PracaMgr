@@ -45,7 +45,7 @@ class auto_test:
         return score
 
     # TODO: Podłączyć ViSQOL
-    def visqol(self, ref_path, comp_path) -> float:
+    def visqol(self, ref_path:str, comp_path:str) -> float:
         return 0.0
     
 if __name__ == "__main__":
