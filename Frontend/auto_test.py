@@ -1,5 +1,8 @@
 import json
 import sys
+import os
+import datetime
+
 from pathlib import Path
 from optuna import Trial
 
@@ -16,7 +19,7 @@ class auto_test:
         self.organ.make_test_sample(voice_id)
 
     def write_test_params(self, trial: Trial) -> dict[str, float]:
-        params = {
+        params:dict[str, float] = {
             "baseFrequency": 440.0,
 
             "reflection": trial.suggest_float("reflection", 0.0, 1.0),
@@ -32,43 +35,39 @@ class auto_test:
             "lossFilterCoeff": trial.suggest_float("lossFilterCoeff", 0.0, 1.0),
         }
 
-        with open(TEST_PARAMS_PATH, "w") as f:
-            json.dump(params, f, indent=2)
-
         return params
     
     def objective(self, trial):
         params = self.write_test_params(trial)
-        self.organ.make_test_synth_sample()
 
-        score = self.visqol("../Backend/local/test/ref.wav", "../Backend/local/test/comp.wav")
+        with open(TEST_PARAMS_PATH, "w") as f:
+            json.dump(params, f, indent=2)
+
+        self.organ.make_test_synth_sample()       
+
+        ref_path:str = "../Backend/local/test/ref.wav"
+        comp_path:str = "../Backend/local/test/comp.wav"
+        score = self.visqol(ref_path, comp_path)
+        
         return score
 
     # TODO: Podłączyć ViSQOL
     def visqol(self, ref_path:str, comp_path:str) -> float:
         return 0.0
+
+    # TODO: Implementacja
+    def run(self) -> dict[str, float]:
+        return { "hello" : 1.0 }
     
+
 if __name__ == "__main__":
-    organ:MainModule = MainModule()
-    organ.init()
-    organ.make_test_sample(0)
+    print("voice id: ", end="")
+    v_id:int = int(input())
 
-    params = {
-        "baseFrequency": 440.0,
-        "reflection": 0.45,
-        "excitationGain": 0.45,
-        "noiseGain" :  0.01,
-        "jetLength": 0.48,
-        "jetLowpassCoeff": 0.3,
-        "lowpassCoeff": 0.6,
-        "nonlinearCoeff": 0.8,
-        "lossFilterCoeff": 0.15,
-        "loopFeedbackGain": 0.8,
-        "scale" : 1.0
-    }
+    at:auto_test = auto_test(v_id)
+    best_params:dict[str, float] = at.run()
+    path:str = f".\\output\\result-{v_id}-{datetime.datetime.now().strftime("%d-%m-%Y-%H-%M-%S")}.json"
 
-    with open(TEST_PARAMS_PATH, "w") as f:
-        json.dump(params, f, indent=2)
-
-    organ.make_test_synth_sample()
+    with open(path, 'w') as file:
+        json.dump(best_params, fp=file)
 
