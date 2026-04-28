@@ -5,6 +5,8 @@ import datetime
 from pathlib import Path
 from optuna import Trial
 
+import visqolpy.visqol_py as visqol_py
+
 TEST_PARAMS_PATH = Path("../Backend/local/test/temp.json")
 VOICES_PATH = Path("../Backend/local/samples")
 
@@ -16,6 +18,7 @@ class auto_test:
         self.organ:MainModule = MainModule()
         self.organ.init()
         self.organ.make_test_sample(voice_id)
+        self.visqol = visqol_py.ViSQOL()
 
     def write_test_params(self, trial: Trial) -> dict[str, float]:
         params:dict[str, float] = {
@@ -51,8 +54,8 @@ class auto_test:
         return score
 
     # TODO: Podłączyć ViSQOL
-    def visqol(self, ref_path:str, comp_path:str) -> float:
-        return 0.0
+    def realism(self, ref_path:str, comp_path:str) -> float:
+        return self.visqol.measure(ref_path, comp_path)
 
     # TODO: Implementacja
     def run(self) -> dict[str, float]:
