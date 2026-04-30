@@ -79,5 +79,39 @@
       "lossFilterCoeff": 0.1,
       "loopFeedbackGain": 0.88
     }
+  },
+  {
+    "id": 6,
+    "name": "hard-to-tell",
+    "type": "F",
+      "params": {
+      "reflection": 0.9528392252721413,
+      "excitationGain": 0.7853208478900804,
+      "noiseGain": 0.6189347845694186,
+      "jetGain": 0.7319878986149133,
+      "jetLength": 0.6240506910627225,
+      "loopFeedbackGain": 0.9994998557472865,
+      "jetLowpassCoeff": 0.113578772062076,
+      "lowpassCoeff": 0.4961161358296736,
+      "nonlinearCoeff": 0.2958209210724003,
+      "lossFilterCoeff": 0.9227646189237576
+    }
+  },
+  {
+    "id": 7,
+    "name": "hard-to-tell-2",
+    "type": "P",
+      "params": {
+        "reflection": 0.03257347833282587,
+        "excitationGain": 0.6190552192981061,
+        "noiseGain": 0.17262173442811887,
+        "jetGain": 0.16888989802220672,
+        "jetLength": 0.7398833860960466,
+        "loopFeedbackGain": 0.9681392964900433,
+        "jetLowpassCoeff": 0.49819161071562224,
+        "lowpassCoeff": 0.9999996092261756,
+        "nonlinearCoeff": 0.14470559301032962,
+        "lossFilterCoeff": 0.580147207799971
+    }
   }
 ]

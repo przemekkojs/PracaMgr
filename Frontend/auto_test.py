@@ -5,6 +5,10 @@ import datetime
 from pathlib import Path
 from optuna import Trial
 
+import numpy as np
+import librosa
+import optuna
+
 import visqolpy.visqol_py as visqol_py
 
 TEST_PARAMS_PATH = Path("../Backend/local/test/temp.json")
@@ -18,7 +22,6 @@ class auto_test:
         self.organ:MainModule = MainModule()
         self.organ.init()
         self.organ.make_test_sample(voice_id)
-        self.visqol = visqol_py.ViSQOL()
 
     def write_test_params(self, trial: Trial) -> dict[str, float]:
         params:dict[str, float] = {
@@ -49,17 +52,47 @@ class auto_test:
 
         ref_path:str = "../Backend/local/test/ref.wav"
         comp_path:str = "../Backend/local/test/comp.wav"
-        score = self.visqol(ref_path, comp_path)
+        score = self.realism(ref_path, comp_path)
         
         return score
 
-    # TODO: Podłączyć ViSQOL
     def realism(self, ref_path:str, comp_path:str) -> float:
-        return self.visqol.measure(ref_path, comp_path)
+        y1, sr1 = librosa.load(ref_path, sr=None, mono=True)
+        y2, sr2 = librosa.load(comp_path, sr=None, mono=True)
 
-    # TODO: Implementacja
-    def run(self) -> dict[str, float]:
-        return { "hello" : 1.0 }
+        min_len = min(len(y1), len(y2))
+        y1 = y1[:min_len]
+        y2 = y2[:min_len]
+
+        y1 = y1 / (np.sqrt(np.mean(y1 ** 2)) + 1e-10)
+        y2 = y2 / (np.sqrt(np.mean(y2 ** 2)) + 1e-10)
+
+        S1 = np.abs(librosa.stft(y1, n_fft=2048, hop_length=512))
+        S2 = np.abs(librosa.stft(y2, n_fft=2048, hop_length=512))
+
+        eps = 1e-10
+        log_S1 = np.log(S1 + eps)
+        log_S2 = np.log(S2 + eps)
+
+        frame_lsd = np.sqrt(np.mean((log_S1 - log_S2) ** 2, axis=0))
+        lsd = np.mean(frame_lsd)
+
+        return lsd
+
+    def run(self, n_trials:int=100) -> tuple[dict[str, float], float]:
+        study = optuna.create_study(direction="minimize")
+
+        study.optimize(
+            self.objective,
+            n_trials=n_trials,
+            n_jobs=1,
+            show_progress_bar=True
+        )
+
+        print("Best score:", study.best_value)
+        print("Best params:", study.best_params)
+
+        return (study.best_params, study.best_value)
     
 
 if __name__ == "__main__":
@@ -67,9 +100,13 @@ if __name__ == "__main__":
     v_id:int = int(input())
 
     at:auto_test = auto_test(v_id)
-    best_params:dict[str, float] = at.run()
+    best_params, best_value = at.run(100)
     path:str = f".\\output\\result-{v_id}-{datetime.datetime.now().strftime("%d-%m-%Y-%H-%M-%S")}.json"
 
-    with open(path, 'w') as file:
-        json.dump(best_params, fp=file)
+    out:dict = {
+        "score" : best_value,
+        "params" : best_params
+    }
 
+    with open(path, 'w') as file:
+        json.dump(out, fp=file)

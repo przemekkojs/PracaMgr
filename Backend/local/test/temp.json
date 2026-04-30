@@ -1,13 +1,14 @@
 {
   "baseFrequency": 440.0,
-  "reflection": 0.45,
-  "excitationGain": 0.45,
-  "noiseGain": 0.01,
-  "jetLength": 0.48,
-  "jetLowpassCoeff": 0.3,
-  "lowpassCoeff": 0.6,
-  "nonlinearCoeff": 0.8,
-  "lossFilterCoeff": 0.15,
-  "loopFeedbackGain": 0.8,
-  "scale": 1.0
+  "reflection": 0.034122644047070314,
+  "excitationGain": 0.6869324796338098,
+  "noiseGain": 0.2377746285164154,
+  "jetGain": 0.16752509527711548,
+  "scale": 1.0,
+  "jetLength": 0.6058404969839175,
+  "loopFeedbackGain": 0.47475364364640515,
+  "jetLowpassCoeff": 0.26340284961758187,
+  "lowpassCoeff": 0.967847687177618,
+  "nonlinearCoeff": 0.2334602401728285,
+  "lossFilterCoeff": 0.6865054056673083
 }

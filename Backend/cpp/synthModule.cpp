@@ -56,7 +56,9 @@ void synthModule::unload() {
     this->allVoices.clear();
 }
 
-synthPipe::synthPipe() : params(), adsr() { }
+synthPipe::synthPipe() : params(), adsr() {
+    rng.seed(42);
+}
 
 void synthPipe::load(synthPipeParams& params) {
     this->params = params;
