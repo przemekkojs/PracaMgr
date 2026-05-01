@@ -73,6 +73,7 @@ public:
 	float lowpass(float x);
 	float jetLowpass(float x);
 	float nonlinear(float x, float env);
+	float allpass(float x);
 
 	float pinkNoise();
 	float whiteNoise();
@@ -110,6 +111,13 @@ protected:
 	float windDrift = 0.0f;
 	float lastPipeOut = 0.0f;
 
+	float ap_x1 = 0.0f;
+	float ap_y1 = 0.0f;
+	float jetState = 0.0f;
+	float loss_x1 = 0.0f;
+	float loss_y1 = 0.0f;
+	float reflectionLP = 0.0f;
+
 	std::mt19937 rng;
 	uint32_t state = 123456789;
 	std::uniform_real_distribution<float> noise{ -1.0f, 1.0f };
@@ -142,6 +150,32 @@ public:
 private:
 };
 
+class flutePipeModel : public synthPipe {
+public:
+	flutePipeModel() : synthPipe() {}
+
+private:
+};
+
+class stringPipeModel : public synthPipe {
+public:
+	stringPipeModel() : synthPipe() {}
+
+private:
+};
+
+class principalPipeModel : public synthPipe {
+public:
+	principalPipeModel() : synthPipe() {}
+};
+
+class reedPipeModel : public synthPipe {
+public:
+	reedPipeModel() : synthPipe() {}
+
+private:
+};
+
 class synthVoice {
 public:
 	synthVoice();
@@ -151,7 +185,7 @@ public:
 	void noteOff(int note);
 	float process();
 
-	synthPipeParams pipeParams(int note);
+	synthPipeParams pipeParams(int note) const;
 
 	std::vector<synthPipe>& getPipes() { return this->pipes; }
 	synthVoiceParams& getParams() { return this->params; }

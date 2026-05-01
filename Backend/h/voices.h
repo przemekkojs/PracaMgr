@@ -33,6 +33,7 @@ struct synthVoiceParams {
     float lowpassCoeff;
     float nonlinearCoeff;
     float lossFilterCoeff;
+    int testVoiceType;
 
     static synthVoiceParams fromJson(const nlohmann::json& j) {
         synthVoiceParams p;
@@ -49,6 +50,7 @@ struct synthVoiceParams {
         p.nonlinearCoeff = j.value("nonlinearCoeff", 1.0f);
         p.lossFilterCoeff = j.value("lossFilterCoeff", 0.3f);
         p.loopFeedbackGain = j.value("loopFeedbackGain", 0.9f);
+        p.testVoiceType = j.value("testVoiceType", 1);
 
         return p;
     }

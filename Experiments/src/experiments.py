@@ -5,14 +5,17 @@ import json
 import statistics
 
 class test:
-    def __init__(self, id:(str | int), cpu:list[float], ram:list[float], note:int, voice_id:int, realism:list[int]):
+    def __init__(self, id:(str | int), cpu:list[float], ram:list[float], note:int, voice_id:int, realism:(tuple[float, float, float] | list[tuple[float, float, float]]), combined:bool=False):
         self.id:str = str(id)
         self.cpu:list[float] = cpu
         self.ram:list[float] = ram
         self.note:int = note
         self.voice_id:int = voice_id
-        self.realism:int = sum(realism) / len(realism) if realism else 0
 
+        self.realism:tuple[float, float, float] = tuple(
+                sum(x[i] for x in realism) / len(realism) for i in range(3)
+            ) if combined else tuple(float(x) for x in realism)
+        
     def report_result(self) -> dict:
         result: dict = {}
 
@@ -81,9 +84,11 @@ class test:
 class experiment_report:
     def __init__(self):
         self.experiments:list[str] = os.listdir("../Results")
-        self.current_experiment:str = None
+        self.current_experiment:str = ""
 
     def extract_params(self, path:str) -> dict:
+        self.current_experiment = path
+
         with open(path, 'r') as file:
             return json.load(file)
 
@@ -107,22 +112,22 @@ class experiment_report:
             
             cpu_buff:list[float] = []
             ram_buff:list[float] = []
-            realism_buff:list[int] = []
+            realism_buff:list[tuple[float, float, float]] = []
 
             for action in actions:
                 cpu:list[float] = [float(x) for x in action["cpu"]]
                 ram:list[float] = [float(x) for x in action["ram"]]
+                realism:list[int] = [int(x) for x in action["realism"]]          
                 note:int = int(action["note"])
                 voice_id:int = int(action["voice"])
-                realism:int = int(action["realism"] if action["realism"] != None else 0)                
 
                 completion_matrix[(note, voice_id)] = True
-                t:test = test(len(completion_matrix), cpu.copy(), ram.copy(), note, voice_id, [realism])
+                t:test = test(len(completion_matrix), cpu.copy(), ram.copy(), note, voice_id, realism)
                 tests.append(t)
 
                 cpu_buff.extend(cpu)
                 ram_buff.extend(ram)
-                realism_buff.append(realism) 
+                realism_buff.append(realism.copy()) 
 
                 if voice_id != last_voice_id:
                     tmp = last_voice_id
@@ -131,7 +136,7 @@ class experiment_report:
                     if tmp == -1:
                         continue
 
-                    t_all:test = test(f"zbiorczy {voice_id}", cpu_buff.copy(), ram_buff.copy(), -1, -1, realism_buff.copy())
+                    t_all:test = test(f"zbiorczy {voice_id}", cpu_buff.copy(), ram_buff.copy(), -1, -1, realism_buff.copy(), combined=True)
                     tests.append(t_all)
 
                     cpu_buff.clear()
@@ -139,7 +144,7 @@ class experiment_report:
                     realism_buff.clear()
 
             if cpu_buff:
-                t_all = test(-1, cpu_buff.copy(), ram_buff.copy(), -1, -1, realism_buff.copy())
+                t_all = test(f"zbiorczy {voice_id}", cpu_buff.copy(), ram_buff.copy(), -1, -1, realism_buff.copy(), combined=True)
                 tests.append(t_all)    
 
             completed:int = len(completion_matrix)

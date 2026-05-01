@@ -51,6 +51,7 @@ public:
 	void init();
 
 	void makeTestSynthSample() { this->test.makeSynth(); }
+	void makeTestModelSample() { this->test.makeModel(); }
 	void makeTestSample(int voiceId) { this->test.makeSample(this->voiceManager->getVoices()[voiceId].getPath() + "\\60.wav"); }
 
 private:

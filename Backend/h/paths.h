@@ -10,7 +10,8 @@ const auto SAMPLE_OUTPUT_PATH = base / "local" / "out" / "sample.wav";
 const auto SYNTH_OUTPUT_PATH = base / "local" / "out" / "synth.wav";
 const auto MODEL_OUTPUT_PATH = base / "local" / "out" / "model.wav";
 const auto TEST_PARAMS_PATH = base / "local" / "test" / "temp.json";
-const auto TEST_OUTPUT_PATH_COMP = base / "local" / "test" / "comp.wav";
+const auto TEST_OUTPUT_PATH_COMP_SYNTH = base / "local" / "test" / "synth.wav";
+const auto TEST_OUTPUT_PATH_COMP_MODEL = base / "local" / "test" / "model.wav";
 const auto TEST_OUTPUT_PATH_REF = base / "local" / "test" / "ref.wav";
 const std::string SAMPLE_FORMAT = ".wav";
 

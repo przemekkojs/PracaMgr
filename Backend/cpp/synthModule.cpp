@@ -123,8 +123,13 @@ void synthPipe::noteOff() {
 }
 
 float synthPipe::lossFilter(float x) {
-    lossState = (1 - params.baseParams.lossFilterCoeff) * x + params.baseParams.lossFilterCoeff * lossState;
-    return lossState;
+    float a = params.baseParams.lossFilterCoeff;
+    float y = x - loss_x1 + a * loss_y1;
+
+    loss_x1 = x;
+    loss_y1 = y;
+
+    return y;
 }
 
 float synthPipe::lowpass(float x) {
@@ -141,6 +146,16 @@ float synthPipe::nonlinear(float x, float env) {
     float offset = 0.05f * (1 + env);
     float input = std::clamp(x + offset, -1.0f, 1.0f);
     return input - (input * input * input);
+}
+
+float synthPipe::allpass(float x) {
+    float a = 0.1f;
+
+    float y = -a * x + ap_x1 + a * ap_y1;
+    ap_x1 = x;
+    ap_y1 = y;
+
+    return y;
 }
 
 bool synthPipe::isActive() {
@@ -237,7 +252,7 @@ float synthPipe::process() {
 
 synthVoice::synthVoice() : pipes(), params() {}
 
-synthPipeParams synthVoice::pipeParams(int note) {
+synthPipeParams synthVoice::pipeParams(int note) const {
     synthPipeParams p;
 
     float freq = this->params.baseFrequency * std::pow(2.0f, (note - 69) / 12.0f) * this->params.scale;

@@ -1,5 +1,5 @@
 from PySide6.QtWidgets import QApplication, QCheckBox, QHBoxLayout, QVBoxLayout, QWidget, QLabel, QPushButton, QComboBox
-from PySide6.QtCore import QTimer, QObject, Signal, Slot, QThread
+from PySide6.QtCore import QTimer, QThread
 
 import sys
 import datetime
@@ -7,88 +7,18 @@ import json
 import os
 import time
 
-from engine import EngineClient, EngineMonitor, note_on, note_off
+from engine import EngineClient, EngineMonitor
 from widgets import checkboxLabel, textboxLabel, VoiceManager
-
-class TestWorker(QObject):
-    finished = Signal()
-    progress = Signal(dict)
-
-    def __init__(self, notes, voices, duration, send_midi, get_stats, set_voice_active, run_visqol):
-        super().__init__()
-        self.notes = notes
-        self.voices = voices
-        self.duration = duration
-
-        self.send_midi = send_midi
-        self.get_stats = get_stats
-        self.set_voice_active = set_voice_active
-        self.run_visqol = run_visqol
-
-        self.running = True
-
-    @Slot()
-    def run(self):
-        print("WORKER STARTED")
-
-        try:
-            for voice in self.voices:
-                if not self.running:
-                    break
-                
-                self.set_voice_active(voice, True, True)
-
-                for note in self.notes:
-                    if not self.running:
-                        break
-
-                    current = { "voice": voice, "note": note, "ram": [], "cpu": [] }
-                    noteOn = note_on(note)
-                    noteOff = note_off(note)
-
-                    self.send_midi(noteOn)
-
-                    start_time = time.time()
-                    interval = 0.1
-                    next_tick = time.time()
-
-                    while time.time() - start_time < self.duration:
-                        if not self.running:
-                            break
-
-                        cpu, ram = self.get_stats()
-                        current["cpu"].append(cpu)
-                        current["ram"].append(ram)
-
-                        next_tick += interval
-                        time.sleep(max(0, next_tick - time.time()))
-
-                    self.send_midi(noteOff)
-
-                    try:
-                        current["realism"] = self.run_visqol()
-                    except Exception as e:
-                        current["realism"] = None
-
-                    self.progress.emit(current)
-
-                self.set_voice_active(voice, False, True)
-
-            self.finished.emit()
-        except Exception as e:
-            print("WORKER ERROR:", e)
-
-    def stop(self):
-        print("WORKER STOPPED")
-        self.running = False
-
+from metrices import lsd
+from test_worker import TestWorker
 
 class ui(QWidget):
-    def __init__(self):
+    def __init__(self, metric_func=lsd):
         super().__init__()
 
         self.request_id = 0
-        self.pending_requests = {} 
+        self.pending_requests = {}
+        self.run_metric = metric_func
         
         self.engine = EngineClient()
         self.monitor = EngineMonitor(self.engine.process.pid)
@@ -231,7 +161,7 @@ class ui(QWidget):
             send_midi=self.send_midi,
             get_stats=self.get_stats,
             set_voice_active=self.setVoiceActive,
-            run_visqol=self.runViSQOL
+            run_metric=self.run_metric
         )
 
         self.worker.moveToThread(self.th)
@@ -270,9 +200,6 @@ class ui(QWidget):
 
         with open(path, 'w') as file:
             json.dump(self.result_obj, fp=file)
-
-    def runViSQOL(self) -> int:
-        pass
 
     def initVoices(self):        
         self.request_voices_names()

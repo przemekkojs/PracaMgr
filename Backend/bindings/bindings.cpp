@@ -28,11 +28,19 @@ PYBIND11_MODULE(organ_engine, m) {
         .def(py::init<>())
 
         .def("play", &mainModule::play)
-        .def("get_signal", &mainModule::getSignal)
+        .def("init", &mainModule::init)
+        .def("save_recordings", &mainModule::saveRecordings)
+        .def("make_test_synth_sample", &mainModule::makeTestSynthSample)
+        .def("make_test_model_sample", &mainModule::makeTestModelSample)
+        .def("make_test_sample", &mainModule::makeTestSample)
 
+        .def("get_signal", &mainModule::getSignal)
         .def("get_samples_active", &mainModule::getSamplesActive)
         .def("get_synth_active", &mainModule::getSynthActive)
         .def("get_model_active", &mainModule::getModelActive)
+        .def("get_midi_device_name", &mainModule::getMidiDeviceName)
+        .def("get_voices_names", &mainModule::getVoicesNames)
+        .def("get_master_gain", &mainModule::getMasterGain)
 
         .def("load_samples_module", &mainModule::loadSamplesModule)
         .def("unload_samples_module", &mainModule::unloadSamplesModule)
@@ -44,21 +52,8 @@ PYBIND11_MODULE(organ_engine, m) {
         .def("set_samples_active", &mainModule::setSamplesActive)
         .def("set_synth_active", &mainModule::setSynthActive)
         .def("set_model_active", &mainModule::setModelActive)
-
         .def("set_voice_active", &mainModule::setVoiceActive)
-
-        .def("get_midi_device_name", &mainModule::getMidiDeviceName)
-
-        .def("get_voices_names", &mainModule::getVoicesNames)
-
-        .def("set_master_gain", &mainModule::setMasterGain)
-        .def("get_master_gain", &mainModule::getMasterGain)
-
-        .def("save_recordings", &mainModule::saveRecordings)
-        .def("init", &mainModule::init)
-
-        .def("make_test_synth_sample", &mainModule::makeTestSynthSample)
-        .def("make_test_sample", &mainModule::makeTestSample);
+        .def("set_master_gain", &mainModule::setMasterGain);
 
     m.attr("EMPTY_NOTE_SIGNAL") = EMPTY_NOTE_SIGNAL;
 }

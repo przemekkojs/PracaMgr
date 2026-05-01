@@ -2,18 +2,48 @@
 
 testModule::testModule() { }
 
-void testModule::makeSynth() {	
+void testModule::makeArtificial(const std::string& path) {
 	std::ifstream f(TEST_PARAMS_PATH);
 	nlohmann::json j;
 	f >> j;
 
-	synthVoiceParams baseParams =
-	synthVoiceParams::fromJson(j);
+	synthVoiceParams baseParams = synthVoiceParams::fromJson(j);
+
+    int testVoiceType = baseParams.testVoiceType;
 	synthPipeParams params;
-	synthPipe pipe;
+    synthPipe pipe = principalPipe();
+
+    switch (testVoiceType) {
+    case 1:
+        pipe = flutePipe();
+        break;
+    case 2:
+        pipe = stringPipe();
+        break;
+    case 3:
+        pipe = principalPipe();
+        break;
+    case 4:
+        pipe = reedPipe();
+        break;
+    case 5:
+        pipe = flutePipeModel();
+        break;
+    case 6:
+        pipe = stringPipeModel();
+        break;
+    case 7:
+        pipe = principalPipeModel();
+        break;
+    case 8:
+        pipe = reedPipeModel();
+        break;
+    default:
+        break;
+    }
 	
 	const float duration = 10.0f;
-	float freq = baseParams.baseFrequency * std::pow(2.0f, -9 / 12.0f) * baseParams.scale;
+	float freq = baseParams.baseFrequency * std::pow(2.0f, 0 / 12.0f) * baseParams.scale;
 	float filterDelayComp = 1.0f;
 
 	params.baseParams = baseParams;
@@ -35,8 +65,8 @@ void testModule::makeSynth() {
         data.push_back(pipe.process());
     }
 
-    this->writeWavFloat(TEST_OUTPUT_PATH_COMP.string(), data);
-    this->pruneFile(TEST_OUTPUT_PATH_COMP.string(), TEST_OUTPUT_PATH_COMP.string());
+    this->writeWavFloat(path, data);
+    this->pruneFile(path, path);
 }
 
 void testModule::makeSample(std::string basePath) {
@@ -79,10 +109,13 @@ void testModule::writeWavFloat(const std::string& path, const std::vector<float>
     file.write(reinterpret_cast<const char*>(&dataSize), 4);
 
     file.write(reinterpret_cast<const char*>(data.data()), dataSize);
+
+    file.close();
 }
 
 void testModule::pruneFile(const std::string& inPath, const std::string& outPath) {
     std::ifstream in(inPath, std::ios::binary);
+
     if (!in) {
         std::cerr << "Cannot open input file\n";
         return;
@@ -92,7 +125,7 @@ void testModule::pruneFile(const std::string& inPath, const std::string& outPath
         char riff[4];
         uint32_t chunkSize;
         char wave[4];
-    } header;
+    } header{};
 
     in.read(reinterpret_cast<char*>(&header), sizeof(header));
 
@@ -172,7 +205,7 @@ void testModule::pruneFile(const std::string& inPath, const std::string& outPath
     out.write("WAVE", 4);
 
     uint32_t fmtSize = 16;
-    audioFormat = 3;
+    // audioFormat = 3;
 
     out.write("fmt ", 4);
     out.write(reinterpret_cast<char*>(&fmtSize), 4);
@@ -190,6 +223,4 @@ void testModule::pruneFile(const std::string& inPath, const std::string& outPath
     out.write("data", 4);
     out.write(reinterpret_cast<char*>(&newDataSize), 4);
     out.write(buffer.data(), newDataSize);
-
-    out.close();
 }

@@ -47,15 +47,17 @@ void mainModule::play(noteSignal& signal) {
 	bool modelActive = this->getModelActive();
 	bool samplesActive = this->getSamplesActive();
 
+	std::cout << synthActive << modelActive << samplesActive << std::endl;
+
 	if (signal.on) {
 		if (modelActive && synthActive && samplesActive) {
 			buffer.clear();
 			buffer.start();
 		}
 	}
-	else {
-		buffer.stop();
+	else {		
 		buffer.save();
+		buffer.stop();
 	}
 
 	if (synthActive)
