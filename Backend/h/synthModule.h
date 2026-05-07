@@ -9,6 +9,7 @@
 #include <vector>
 #include <cmath>
 #include <random>
+#include <iostream>
 
 enum class AdsrState { IDLE, ATTACK, DECAY, SUSTAIN, RELEASE };
 
@@ -63,11 +64,12 @@ struct synthPipeParams {
 class synthPipe {
 public:
 	synthPipe();
+	virtual ~synthPipe() = default;
 
 	void load(synthPipeParams& params);
 	void noteOn();
 	void noteOff();
-	float process();
+	virtual float process();
 
 	float lossFilter(float x);
 	float lowpass(float x);
@@ -147,7 +149,23 @@ class reedPipe : public synthPipe {
 public:
 	reedPipe() : synthPipe() {}
 
+	float process() override;
+
 private:
+	float y = 0.0f;
+	float yDot = 0.0f;
+
+	float reedFreq = 1500.0f;
+	float reedDamping = 0.2f;
+	float reedStiffness = 1.0f;
+	float reedOffset = 0.0005f;
+	float flowGain = 0.8f;
+	float pressureGain = 1.0f;
+
+	float computeBreath(float env, float pipeOut) override;
+	float processJet(float breath, float pipeOut) override;
+	float processExcitation(float deltaP, float env) override;
+	float processFeedback(float flow, float pipeOut) override;	
 };
 
 class flutePipeModel : public synthPipe {
@@ -187,11 +205,11 @@ public:
 
 	synthPipeParams pipeParams(int note) const;
 
-	std::vector<synthPipe>& getPipes() { return this->pipes; }
+	std::vector<std::unique_ptr<synthPipe>>& getPipes() { return pipes; }
 	synthVoiceParams& getParams() { return this->params; }
 
 private:
-	std::vector<synthPipe> pipes;
+	std::vector<std::unique_ptr<synthPipe>> pipes;
 	synthVoiceParams params;
 };
 

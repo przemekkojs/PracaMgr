@@ -111,15 +111,15 @@ void synthPipe::noteOn() {
     lossState = 0;
 }
 
+void synthPipe::noteOff() {
+    this->adsr.noteOff();
+}
+
 float synthPipe::fastNoise() {
     state ^= state << 13;
     state ^= state >> 17;
     state ^= state << 5;
     return (state * 2.3283064365387e-10f) * 2.0f - 1.0f;
-}
-
-void synthPipe::noteOff() {
-    this->adsr.noteOff();
 }
 
 float synthPipe::lossFilter(float x) {
@@ -269,33 +269,100 @@ synthPipeParams synthVoice::pipeParams(int note) const {
 
 template<class T>
 void synthVoice::load(synthVoiceParams& params) {
+    static_assert(std::is_base_of<synthPipe, T>::value, "T must derive from synthPipe");
+
     this->pipes.clear();
     this->params = params;
 
     for (int note = 0; note < 127; note++) {
-        T p;
+        auto p = std::make_unique<T>();
         synthPipeParams pParams = this->pipeParams(note);
-        p.load(pParams);
-        this->pipes.push_back(p);        
+        p->load(pParams);
+        this->pipes.push_back(std::move(p));
     }
 }
 
 void synthVoice::noteOn(int note) {
-    this->pipes[note].noteOn();
+    this->pipes[note]->noteOn();
 }
 
 void synthVoice::noteOff(int note) {
-    this->pipes[note].noteOff();
+    this->pipes[note]->noteOff();
 }
 
 float synthVoice::process() {
     float out = 0.0f;
 
     for (auto& pipe : this->pipes) {
-        out += pipe.process();
+        out += pipe->process();
     }
 
     return out;
+}
+
+
+float reedPipe::computeBreath(float env, float pipeOut) {
+    float pm = env * pressureGain;
+    float noise = fastNoise() * 0.001f * env;
+
+    return pm + noise;
+}
+
+float reedPipe::processJet(float breath, float pipeOut) {
+    return breath - pipeOut;
+}
+
+float reedPipe::processExcitation(float deltaP, float env) {
+    float dt = 1.0f / SAMPLE_RATE;
+    float omega = 2.0f * 3.14159265f * reedFreq;
+
+    float accel =
+        -2.0f * reedDamping * yDot
+        - omega * omega * y
+        - reedStiffness * deltaP;
+
+    yDot += accel * dt;
+    y += yDot * dt;
+
+    if (y < -reedOffset) {
+        y = -reedOffset;
+        yDot *= -0.2f;
+    }
+
+    float opening = y + reedOffset;
+    if (opening < 0.0f)
+        opening = 0.0f;
+
+    float flow = opening * std::sqrt(std::fabs(deltaP));
+    flow *= (deltaP >= 0.0f ? 1.0f : -1.0f);
+
+    std::cout << "a";
+    return flow * flowGain * 10.0f;
+}
+
+float reedPipe::processFeedback(float flow, float pipeOut) {
+    float input = flow + (pipeOut * params.baseParams.loopFeedbackGain);
+
+    return lowpass(input);
+}
+
+float reedPipe::process() {
+    if (!isActive())
+        return 0.0f;
+
+    std::cout << "a";
+
+    float env = processEnvelope();
+    float pipeOut = readPipe();
+    float filteredOut = processPipeFilter(pipeOut);
+    float breath = computeBreath(env, pipeOut);
+    float jet = processJet(breath, pipeOut);
+    float excitation = processExcitation(jet, env);
+    float pipeInput = processFeedback(excitation, pipeOut);
+
+    writePipe(pipeInput);
+
+    return processOutput(pipeOut);
 }
 
 

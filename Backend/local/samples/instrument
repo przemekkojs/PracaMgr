@@ -116,17 +116,34 @@
     "id": 8,
     "name": "hard-to-tell-3",
     "type": "S",
-      "params": {
-        "reflection": 0.427,
-        "excitationGain": 0.354,
-        "noiseGain": 0.294,
-        "jetGain": 0.254,
-        "jetLength": 0.658,
-        "loopFeedbackGain": 0.943,
-        "jetLowpassCoeff": 0.045,
-        "lowpassCoeff": 0.922,
-        "nonlinearCoeff": 0.56,
-        "lossFilterCoeff": 0.089
+    "params": {
+      "reflection": 0.427,
+      "excitationGain": 0.354,
+      "noiseGain": 0.294,
+      "jetGain": 0.254,
+      "jetLength": 0.658,
+      "loopFeedbackGain": 0.943,
+      "jetLowpassCoeff": 0.045,
+      "lowpassCoeff": 0.922,
+      "nonlinearCoeff": 0.56,
+      "lossFilterCoeff": 0.089
+    }
+  },
+  {
+    "id": 9,
+    "name": "Trompete 8",
+    "type": "R",
+    "params": {
+      "baseFrequency": 440.0,
+      "reflection": 0.45,
+      "excitationGain": 0.45,
+      "noiseGain": 0.01,
+      "jetLength": 0.48,
+      "jetLowpassCoeff": 0.3,
+      "lowpassCoeff": 0.6,
+      "nonlinearCoeff": 0.8,
+      "lossFilterCoeff": 0.15,
+      "loopFeedbackGain": 0.8
     }
   }
 ]
