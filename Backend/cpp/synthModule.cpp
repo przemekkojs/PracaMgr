@@ -275,26 +275,26 @@ void synthVoice::load(synthVoiceParams& params) {
     this->params = params;
 
     for (int note = 0; note < 127; note++) {
-        auto p = std::make_unique<T>();
+        T p;
         synthPipeParams pParams = this->pipeParams(note);
-        p->load(pParams);
-        this->pipes.push_back(std::move(p));
+        p.load(pParams);
+        this->pipes.push_back(p);
     }
 }
 
 void synthVoice::noteOn(int note) {
-    this->pipes[note]->noteOn();
+    this->pipes[note].noteOn();
 }
 
 void synthVoice::noteOff(int note) {
-    this->pipes[note]->noteOff();
+    this->pipes[note].noteOff();
 }
 
 float synthVoice::process() {
     float out = 0.0f;
 
     for (auto& pipe : this->pipes) {
-        out += pipe->process();
+        out += pipe.process();
     }
 
     return out;
@@ -335,8 +335,6 @@ float reedPipe::processExcitation(float deltaP, float env) {
 
     float flow = opening * std::sqrt(std::fabs(deltaP));
     flow *= (deltaP >= 0.0f ? 1.0f : -1.0f);
-
-    std::cout << "a";
     return flow * flowGain * 10.0f;
 }
 
@@ -349,8 +347,6 @@ float reedPipe::processFeedback(float flow, float pipeOut) {
 float reedPipe::process() {
     if (!isActive())
         return 0.0f;
-
-    std::cout << "a";
 
     float env = processEnvelope();
     float pipeOut = readPipe();

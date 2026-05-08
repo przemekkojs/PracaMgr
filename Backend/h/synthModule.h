@@ -10,6 +10,7 @@
 #include <cmath>
 #include <random>
 #include <iostream>
+#include <memory>
 
 enum class AdsrState { IDLE, ATTACK, DECAY, SUSTAIN, RELEASE };
 
@@ -205,11 +206,11 @@ public:
 
 	synthPipeParams pipeParams(int note) const;
 
-	std::vector<std::unique_ptr<synthPipe>>& getPipes() { return pipes; }
+	std::vector<synthPipe>& getPipes() { return pipes; }
 	synthVoiceParams& getParams() { return this->params; }
 
 private:
-	std::vector<std::unique_ptr<synthPipe>> pipes;
+	std::vector<synthPipe> pipes;
 	synthVoiceParams params;
 };
 
