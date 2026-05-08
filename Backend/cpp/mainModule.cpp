@@ -85,8 +85,8 @@ void mainModule::processSample(float& outL, float& outR) {
 	if (this->getSamplesActive())
 		samples.processSample(samplesL, samplesR);
 
-	outL = std::clamp((synthL + modelL + samplesL) * this->masterGain, -1.0f, 1.0f);
-	outR = std::clamp((synthR + modelR + samplesR) * this->masterGain, -1.0f, 1.0f);
+	outL = (synthL + modelL + samplesL) * this->masterGain;
+	outR = (synthR + modelR + samplesR) * this->masterGain;
 
 	float samplesSig = (samplesL + samplesR) / 2;
 	float synthSig = (synthL + synthR) / 2;

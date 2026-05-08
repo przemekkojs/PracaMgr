@@ -30,9 +30,13 @@ void metricBuffer::stop() {
 }
 
 void metricBuffer::clear() {
-    samplesSignalBuffer.clear();
-    synthSignalBuffer.clear();
-    modelSignalBuffer.clear();
+    this->samplesSignalBuffer.clear();
+    this->synthSignalBuffer.clear();
+    this->modelSignalBuffer.clear();
+
+    this->samplesSignalBuffer.resize(SAMPLE_RATE * 10);
+    this->synthSignalBuffer.resize(SAMPLE_RATE * 10);
+    this->modelSignalBuffer.resize(SAMPLE_RATE * 10);
 }
 
 void metricBuffer::save() const {

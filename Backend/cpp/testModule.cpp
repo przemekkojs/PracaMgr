@@ -205,7 +205,6 @@ void testModule::pruneFile(const std::string& inPath, const std::string& outPath
     out.write("WAVE", 4);
 
     uint32_t fmtSize = 16;
-    // audioFormat = 3;
 
     out.write("fmt ", 4);
     out.write(reinterpret_cast<char*>(&fmtSize), 4);

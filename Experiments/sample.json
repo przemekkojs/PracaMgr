@@ -1,0 +1,10 @@
+{
+	"duration": 5,
+	"name": "Sampler",
+	"description": "Główny eksperyment samplera",
+	"notes": [ 48, 50, 52, 53, 55 ],
+	"synth": false,
+	"model": false,
+	"samples": true,
+	"voices": [1]
+}

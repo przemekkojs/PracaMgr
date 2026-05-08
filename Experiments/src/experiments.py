@@ -5,16 +5,16 @@ import json
 import statistics
 
 class test:
-    def __init__(self, id:(str | int), cpu:list[float], ram:list[float], note:int, voice_id:int, realism:(tuple[float, float, float] | list[tuple[float, float, float]]), combined:bool=False):
+    def __init__(self, id:(str | int), cpu:list[float], ram:list[float], note:int, voice_id:int, realism:(tuple[float, float, float] | list[tuple[float, float, float]] | None), combined:bool=False):
         self.id:str = str(id)
         self.cpu:list[float] = cpu
         self.ram:list[float] = ram
         self.note:int = note
         self.voice_id:int = voice_id
 
-        self.realism:tuple[float, float, float] = tuple(
+        self.realism:tuple[float, float, float] = (tuple(
                 sum(x[i] for x in realism) / len(realism) for i in range(3)
-            ) if combined else tuple(float(x) for x in realism)
+            ) if combined else tuple(float(x) for x in realism)) if realism else (-1.0, -1.0, -1.0)
         
     def report_result(self) -> dict:
         result: dict = {}

@@ -61,11 +61,15 @@ class TestWorker(QObject):
 
                     self.send_midi(noteOff)
 
+                    print('a')
+
                     try:
                         current["realism"] = self.run_metric(ref=REF, synth=SYNTH, model=MODEL)
                     except Exception as e:
                         current["realism"] = None
-                        print("METRIC ERROR:", e)
+                        print("METRIC ERROR:", str(e))
+
+                    print('b')
 
                     self.progress.emit(current)
 
@@ -73,7 +77,7 @@ class TestWorker(QObject):
 
             self.finished.emit()
         except Exception as e:
-            print("WORKER ERROR:", e)
+            print("WORKER ERROR:", str(e))
 
     def stop(self):
         print("WORKER STOPPED")

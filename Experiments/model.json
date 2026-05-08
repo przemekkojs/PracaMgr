@@ -1,0 +1,10 @@
+{
+	"duration": 5,
+	"name": "Model",
+	"description": "Główny eksperyment modelu",
+	"notes": [ 48, 50, 52, 53, 55 ],
+	"synth": false,
+	"model": true,
+	"samples": false,
+	"voices": [1]
+}
