@@ -10,8 +10,6 @@ def lsd(ref:str=REF, synth:str=SYNTH, model:str=MODEL) -> tuple[float, float, fl
     y2, _ = librosa.load(synth, sr=None, mono=True)
     y3, _ = librosa.load(model, sr=None, mono=True)
 
-    print(y1.shape, y2.shape, y3.shape)
-
     min_len = min(len(y1), len(y2), len(y3))
     y1 = y1[:min_len]
     y2 = y2[:min_len]

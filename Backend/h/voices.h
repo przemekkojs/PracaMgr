@@ -35,6 +35,24 @@ struct synthVoiceParams {
     float lossFilterCoeff;
     int testVoiceType;
 
+    float breathBase;
+    float breathEnvAmount;
+    float breathNoiseGain;
+    float reedOpening;
+    float reedBias;
+    float reedLeak;
+    float reedHysteresis;
+    float reedNonlin;
+    float reedNonlinEnv;
+    float reedGain;
+    float buzzGain;
+    float attackNoiseGain;
+    float attackEnvThreshold;
+    float resonanceFreq;
+    float resonanceGain;
+    float feedbackNonlin;
+    float jetDelayOffset;
+
     static synthVoiceParams fromJson(const nlohmann::json& j) {
         synthVoiceParams p;
 
@@ -45,11 +63,30 @@ struct synthVoiceParams {
         p.scale = j.value("scale", 1.0f);
         p.jetGain = j.value("jetGain", 0.0f);
         p.jetLength = j.value("jetLength", 0.5f);
+        p.loopFeedbackGain = j.value("loopFeedbackGain", 0.9f);
         p.jetLowpassCoeff = j.value("jetLowpassCoeff", 0.5f);
         p.lowpassCoeff = j.value("lowpassCoeff", 0.9f);
         p.nonlinearCoeff = j.value("nonlinearCoeff", 1.0f);
         p.lossFilterCoeff = j.value("lossFilterCoeff", 0.3f);
-        p.loopFeedbackGain = j.value("loopFeedbackGain", 0.9f);
+
+        p.breathBase = j.value("breathBase", 0.1f);
+        p.breathEnvAmount = j.value("breathEnvAmount", 0.9f);
+        p.breathNoiseGain = j.value("breathNoiseGain", 0.01f);
+        p.reedOpening = j.value("reedOpening", 0.0003f);
+        p.reedBias = j.value("reedBias", 0.4f);
+        p.reedLeak = j.value("reedLeak", 0.001f);
+        p.reedHysteresis = j.value("reedHysteresis", 0.7f);
+        p.reedNonlin = j.value("reedNonlin", 4.0f);
+        p.reedNonlinEnv = j.value("reedNonlinEnv", 0.5f);
+        p.reedGain = j.value("reedGain", 1.2f);
+        p.buzzGain = j.value("buzzGain", 0.02f);
+        p.attackNoiseGain = j.value("attackNoiseGain", 0.1f);
+        p.attackEnvThreshold = j.value("attackEnvThreshold", 0.1f);
+        p.resonanceFreq = j.value("resonanceFreq", 3000.0f);
+        p.resonanceGain = j.value("resonanceGain", 0.3f);
+        p.feedbackNonlin = j.value("feedbackNonlin", 2.0f);
+        p.jetDelayOffset = j.value("jetDelayOffset", 1.0f);
+
         p.testVoiceType = j.value("testVoiceType", 1);
 
         return p;
@@ -63,21 +100,6 @@ struct synthVoiceParams {
             case 'R': return voiceType::REED;
             default: throw std::exception("Invalid voice type");
         }
-    }
-
-    std::string toString() const {
-        return "baseFrequency=" + std::to_string(baseFrequency) + "\n" +
-            "reflection=" + std::to_string(reflection) + "\n" +
-            "excitationGain=" + std::to_string(excitationGain) + "\n" +
-            "noiseGain=" + std::to_string(noiseGain) + "\n" +
-            "jetGain=" + std::to_string(jetGain) + "\n" +
-            "scale=" + std::to_string(scale) + "\n" +
-            "jetLength=" + std::to_string(jetLength) + "\n" +
-            "loopFeedbackGain=" + std::to_string(loopFeedbackGain) + "\n" +
-            "jetLowpassCoeff=" + std::to_string(jetLowpassCoeff) + "\n" +
-            "lowpassCoeff=" + std::to_string(lowpassCoeff) + "\n" +
-            "nonlinearCoeff=" + std::to_string(nonlinearCoeff) + "\n" +
-            "lossFilterCoeff=" + std::to_string(lossFilterCoeff);
     }
 };
 

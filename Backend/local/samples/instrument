@@ -145,5 +145,22 @@
       "lossFilterCoeff": 0.15,
       "loopFeedbackGain": 0.8
     }
+  },
+  {
+    "id": 10,
+    "name": "Principal 8",
+    "type": "P",
+    "params": {
+        "reflection": 0.914,
+        "excitationGain": 0.185,
+        "noiseGain": 0.033,
+        "jetGain": 0.563,
+        "jetLength": 0.722,
+        "loopFeedbackGain": 0.968,
+        "jetLowpassCoeff": 0.46,
+        "lowpassCoeff": 0.937,
+        "nonlinearCoeff": 1.051,
+        "lossFilterCoeff": 0.46
+    }
   }
 ]

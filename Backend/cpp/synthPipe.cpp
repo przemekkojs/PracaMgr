@@ -184,6 +184,7 @@ float synthPipe::process() {
     float env = processEnvelope();
     float pipeOut = readPipe();
     float filteredOut = processPipeFilter(pipeOut);
+
     float breath = computeBreath(env, pipeOut);
     float jet = processJet(breath, pipeOut);
     float excitation = processExcitation(jet, env);
@@ -196,44 +197,62 @@ float synthPipe::process() {
 
 
 float reedPipe::computeBreath(float env, float pipeOut) {
-    float pm = env * pressureGain;
-    float noise = fastNoise() * 0.001f * env;
+    float pm = (params.baseParams.breathBase + params.baseParams.breathEnvAmount * env);
+    float noise = fastNoise() * params.baseParams.breathNoiseGain;
 
     return pm + noise;
 }
 
 float reedPipe::processJet(float breath, float pipeOut) {
-    return breath - pipeOut;
+    float deltaP = breath - pipeOut;
+
+    jetDelayLine[jetIdx] = deltaP;
+
+    int readIdx = (jetIdx + (int)params.baseParams.jetDelayOffset) % jetDelayLine.size();
+    float delayed = jetDelayLine[readIdx];
+
+    jetIdx = (jetIdx + 1) % jetDelayLine.size();
+
+    return delayed;
 }
 
 float reedPipe::processExcitation(float deltaP, float env) {
-    float dt = 1.0f / SAMPLE_RATE;
-    float omega = 2.0f * 3.14159265f * reedFreq;
+    float pm = deltaP;
+    float buzz = fastNoise() * params.baseParams.buzzGain * env;
 
-    float accel =
-        -2.0f * reedDamping * yDot
-        - omega * omega * y
-        - reedStiffness * deltaP;
-
-    yDot += accel * dt;
-    y += yDot * dt;
-
-    if (y < -reedOffset) {
-        y = -reedOffset;
-        yDot *= -0.2f;
-    }
-
-    float opening = y + reedOffset;
+    float opening = params.baseParams.reedOpening - params.baseParams.reedBias * pm + buzz;
     if (opening < 0.0f)
         opening = 0.0f;
 
-    float flow = opening * std::sqrt(std::fabs(deltaP));
-    flow *= (deltaP >= 0.0f ? 1.0f : -1.0f);
-    return flow * flowGain * 10.0f;
+    opening = params.baseParams.reedHysteresis * lastOpening + (1.0f - params.baseParams.reedHysteresis) * opening;
+    lastOpening = opening;
+
+    float flow = opening * std::sqrt(std::fabs(pm) + 1e-6f);
+    flow *= (pm >= 0.0f ? 1.0f : -1.0f);
+    flow += params.baseParams.reedLeak * pm;
+
+    float drive = params.baseParams.reedNonlin * (1.0f + params.baseParams.reedNonlinEnv * env);
+    float out = std::tanh(flow * drive);
+
+    float f = params.baseParams.resonanceFreq / SAMPLE_RATE;
+    float hp = out - resonance_z1;
+    float bp = resonance_z1 - resonance_z2;
+
+    resonance_z1 += f * hp;
+    resonance_z2 += f * bp;
+
+    out += params.baseParams.resonanceGain * bp;
+
+    if (env < params.baseParams.attackEnvThreshold)
+        out += fastNoise() * params.baseParams.attackNoiseGain;
+
+    return out * params.baseParams.reedGain;
 }
 
 float reedPipe::processFeedback(float flow, float pipeOut) {
     float input = flow + (pipeOut * params.baseParams.loopFeedbackGain);
+
+    input = std::tanh(input * params.baseParams.feedbackNonlin);
 
     return lowpass(input);
 }

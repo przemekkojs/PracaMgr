@@ -20,17 +20,6 @@ struct synthPipeParams {
 		this->delaySamples = 100;
 		this->jetDelaySamples = 20;
 	}
-
-	std::string toString() const {
-		std::string result;
-
-		result += "[baseParams]\n" + baseParams.toString() + "\n";
-		result += "frequency=" + std::to_string(frequency) + "\n";
-		result += "delaySamples=" + std::to_string(delaySamples) + "\n";
-		result += "jetDelaySamples=" + std::to_string(jetDelaySamples);
-
-		return result;
-	}
 };
 
 class synthPipe {
@@ -54,11 +43,14 @@ public:
 	float brownNoise();
 	float fastNoise();
 
-	virtual void writePipe(float input);
-	virtual bool isActive();
-	virtual float processEnvelope();
-	virtual float readPipe();
-	virtual float processPipeFilter(float pipeOut);
+
+	void writePipe(float input);
+	bool isActive();
+
+	float processEnvelope();
+	float readPipe();
+	float processPipeFilter(float pipeOut);
+
 	virtual float computeBreath(float env, float pipeOut);
 	virtual float processJet(float breath, float pipeOut);
 	virtual float processExcitation(float jet, float env);
@@ -129,15 +121,9 @@ public:
 	float processFeedback(float flow, float pipeOut) override;
 
 private:
-	float y = 0.0f;
-	float yDot = 0.0f;
-
-	float reedFreq = 1500.0f;
-	float reedDamping = 0.2f;
-	float reedStiffness = 1.0f;
-	float reedOffset = 0.0005f;
-	float flowGain = 0.8f;
-	float pressureGain = 1.0f;
+	float lastOpening = 0.0f;
+	float resonance_z1 = 0.0f;
+	float resonance_z2 = 0.0f;
 };
 
 class flutePipeModel : public synthPipe {

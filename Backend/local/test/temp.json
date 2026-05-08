@@ -1,15 +1,15 @@
 {
   "baseFrequency": 440.0,
   "scale": 1.0,
-  "testVoiceType": 3,
-  "reflection": 0.41400000000000003,
-  "excitationGain": 0.314,
-  "noiseGain": 0.5660000000000001,
-  "jetGain": 0.281,
-  "jetLength": 0.8250000000000001,
-  "loopFeedbackGain": 0.877,
-  "jetLowpassCoeff": 0.08700000000000001,
-  "lowpassCoeff": 0.792,
-  "nonlinearCoeff": 0.47000000000000003,
-  "lossFilterCoeff": 0.167
+  "testVoiceType": 1,
+  "reflection": 0.883,
+  "excitationGain": 0.23600000000000002,
+  "noiseGain": 0.07200000000000001,
+  "jetGain": 0.905,
+  "jetLength": 0.676,
+  "loopFeedbackGain": 0.9289999999999999,
+  "jetLowpassCoeff": 0.8740000000000001,
+  "lowpassCoeff": 0.9329999999999999,
+  "nonlinearCoeff": 1.022,
+  "lossFilterCoeff": 0.29600000000000004
 }

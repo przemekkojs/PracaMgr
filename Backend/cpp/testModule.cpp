@@ -43,7 +43,7 @@ void testModule::makeArtificial(const std::string& path) {
     }
 	
 	const float duration = 10.0f;
-	float freq = baseParams.baseFrequency * std::pow(2.0f, 0 / 12.0f) * baseParams.scale;
+	float freq = baseParams.baseFrequency * baseParams.scale;
 	float filterDelayComp = 1.0f;
 
 	params.baseParams = baseParams;
