@@ -48,7 +48,7 @@ void synthModule::load() {
             break;
         }
 
-        this->allVoices.push_back(sV);
+        this->allVoices.push_back(std::move(sV));
     }
 }
 
@@ -275,26 +275,26 @@ void synthVoice::load(synthVoiceParams& params) {
     this->params = params;
 
     for (int note = 0; note < 127; note++) {
-        T p;
+        std::unique_ptr<T> p = std::make_unique<T>();
         synthPipeParams pParams = this->pipeParams(note);
-        p.load(pParams);
-        this->pipes.push_back(p);
+        p->load(pParams);
+        this->pipes.push_back(std::move(p));
     }
 }
 
 void synthVoice::noteOn(int note) {
-    this->pipes[note].noteOn();
+    this->pipes[note]->noteOn();
 }
 
 void synthVoice::noteOff(int note) {
-    this->pipes[note].noteOff();
+    this->pipes[note]->noteOff();
 }
 
 float synthVoice::process() {
     float out = 0.0f;
 
     for (auto& pipe : this->pipes) {
-        out += pipe.process();
+        out += pipe->process();
     }
 
     return out;

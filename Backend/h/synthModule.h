@@ -144,6 +144,8 @@ private:
 class principalPipe : public synthPipe {
 public:
 	principalPipe() : synthPipe() {}
+
+private:
 };
 
 class reedPipe : public synthPipe {
@@ -151,6 +153,11 @@ public:
 	reedPipe() : synthPipe() {}
 
 	float process() override;
+
+	float computeBreath(float env, float pipeOut) override;
+	float processJet(float breath, float pipeOut) override;
+	float processExcitation(float deltaP, float env) override;
+	float processFeedback(float flow, float pipeOut) override;
 
 private:
 	float y = 0.0f;
@@ -161,12 +168,7 @@ private:
 	float reedStiffness = 1.0f;
 	float reedOffset = 0.0005f;
 	float flowGain = 0.8f;
-	float pressureGain = 1.0f;
-
-	float computeBreath(float env, float pipeOut) override;
-	float processJet(float breath, float pipeOut) override;
-	float processExcitation(float deltaP, float env) override;
-	float processFeedback(float flow, float pipeOut) override;	
+	float pressureGain = 1.0f;	
 };
 
 class flutePipeModel : public synthPipe {
@@ -186,6 +188,8 @@ private:
 class principalPipeModel : public synthPipe {
 public:
 	principalPipeModel() : synthPipe() {}
+
+private:
 };
 
 class reedPipeModel : public synthPipe {
@@ -199,6 +203,11 @@ class synthVoice {
 public:
 	synthVoice();
 
+	synthVoice(const synthVoice&) = delete;
+	synthVoice& operator=(const synthVoice&) = delete;
+	synthVoice(synthVoice&&) = default;
+	synthVoice& operator=(synthVoice&&) = default;
+
 	template<class T> void load(synthVoiceParams& params);
 	void noteOn(int note);
 	void noteOff(int note);
@@ -206,11 +215,11 @@ public:
 
 	synthPipeParams pipeParams(int note) const;
 
-	std::vector<synthPipe>& getPipes() { return pipes; }
+	std::vector<std::unique_ptr<synthPipe>>& getPipes() { return this->pipes; }
 	synthVoiceParams& getParams() { return this->params; }
 
 private:
-	std::vector<synthPipe> pipes;
+	std::vector<std::unique_ptr<synthPipe>> pipes;
 	synthVoiceParams params;
 };
 
