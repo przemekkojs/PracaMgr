@@ -52,7 +52,7 @@ void testModule::makeArtificial(const std::string& path) {
 	params.jetDelaySamples = params.delaySamples * baseParams.jetLength;
 	params.jetDelaySamples = std::clamp(params.jetDelaySamples, 2.0f, params.delaySamples * 0.9f);
 
-	pipe.load(params);   
+	pipe.load(params);
 
     std::vector<float> data;
     float out = 0.0f;

@@ -161,7 +161,10 @@ class ui(QWidget):
             send_midi=self.send_midi,
             get_stats=self.get_stats,
             set_voice_active=self.setVoiceActive,
-            run_metric=self.run_metric
+            run_metric=self.run_metric,
+            start_recordings=self.start_recordings,
+            stop_recordings=self.stop_recordings,
+            save_recordings=self.save_recordings
         )
 
         self.worker.moveToThread(self.th)
@@ -238,6 +241,15 @@ class ui(QWidget):
     
     def send_midi(self, note):
         self.engine.send({ "type": "NOTE", "data": (note.note, note.channel, note.on) })
+
+    def start_recordings(self):
+        self.engine.send({ "type": "START_RECORDINGS" })
+
+    def stop_recordings(self):
+        self.engine.send({ "type": "STOP_RECORDINGS" })
+
+    def save_recordings(self):
+        self.engine.send({ "type": "SAVE_RECORDINGS" })
 
     def requestAny(self, what):
         self.request_id += 1

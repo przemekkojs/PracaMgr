@@ -7,9 +7,9 @@ metricBuffer::metricBuffer() : samplesSignalBuffer(), synthSignalBuffer(), model
 metricBuffer::~metricBuffer() { }
 
 void metricBuffer::init() {
-    this->samplesSignalBuffer.resize(SAMPLE_RATE * 10);
-    this->synthSignalBuffer.resize(SAMPLE_RATE * 10);
-    this->modelSignalBuffer.resize(SAMPLE_RATE * 10);
+    this->samplesSignalBuffer.reserve(SAMPLE_RATE * 10);
+    this->synthSignalBuffer.reserve(SAMPLE_RATE * 10);
+    this->modelSignalBuffer.reserve(SAMPLE_RATE * 10);
 }
 
 void metricBuffer::push(const float sample, const float synth, const float model) {
@@ -34,15 +34,12 @@ void metricBuffer::clear() {
     this->synthSignalBuffer.clear();
     this->modelSignalBuffer.clear();
 
-    this->samplesSignalBuffer.resize(SAMPLE_RATE * 10);
-    this->synthSignalBuffer.resize(SAMPLE_RATE * 10);
-    this->modelSignalBuffer.resize(SAMPLE_RATE * 10);
+    this->samplesSignalBuffer.reserve(SAMPLE_RATE * 10);
+    this->synthSignalBuffer.reserve(SAMPLE_RATE * 10);
+    this->modelSignalBuffer.reserve(SAMPLE_RATE * 10);
 }
 
 void metricBuffer::save() const {
-    if (!running)
-        return;
-
     writeWavFloat(SAMPLE_OUTPUT_PATH.string(), samplesSignalBuffer);
     writeWavFloat(SYNTH_OUTPUT_PATH.string(), synthSignalBuffer);
     writeWavFloat(MODEL_OUTPUT_PATH.string(), modelSignalBuffer);

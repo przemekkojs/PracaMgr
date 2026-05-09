@@ -47,17 +47,6 @@ void mainModule::play(noteSignal& signal) {
 	bool modelActive = this->getModelActive();
 	bool samplesActive = this->getSamplesActive();
 
-	if (signal.on) {
-		if (modelActive && synthActive && samplesActive) {
-			buffer.clear();
-			buffer.start();
-		}
-	}
-	else {		
-		buffer.save();
-		buffer.stop();
-	}
-
 	if (synthActive)
 		synth.play(signal);
 
@@ -105,8 +94,8 @@ void mainModule::audioCallback(ma_device* device, void* output, const void*, ma_
 
 		self->processSample(outL, outR);
 
-		out[i * 2 + 0] = outL;
-		out[i * 2 + 1] = outR;		
+		out[i * 2 + 0] = outL * 0.2f;
+		out[i * 2 + 1] = outR * 0.2f;		
 	}	
 }
 
@@ -115,7 +104,7 @@ void mainModule::initDevice() {
 
 	config.playback.format = ma_format_f32;
 	config.playback.channels = 2;
-	config.sampleRate = 48000;
+	config.sampleRate = SAMPLE_RATE;
 	config.dataCallback = audioCallback;
 	config.pUserData = this;
 
@@ -144,4 +133,13 @@ std::map<int, std::string> mainModule::getVoicesNames() {
 
 void mainModule::saveRecordings() {
 	this->buffer.save();
+}
+
+void mainModule::startRecordings() {
+	this->buffer.clear();
+	this->buffer.start();
+}
+
+void mainModule::stopRecordings() {
+	this->buffer.stop();
 }

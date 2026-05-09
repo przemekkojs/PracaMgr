@@ -30,6 +30,8 @@ PYBIND11_MODULE(organ_engine, m) {
         .def("play", &mainModule::play)
         .def("init", &mainModule::init)
         .def("save_recordings", &mainModule::saveRecordings)
+        .def("start_recordings", &mainModule::startRecordings)
+        .def("stop_recordings", &mainModule::stopRecordings)
         .def("make_test_synth_sample", &mainModule::makeTestSynthSample)
         .def("make_test_model_sample", &mainModule::makeTestModelSample)
         .def("make_test_sample", &mainModule::makeTestSample)

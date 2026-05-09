@@ -20,72 +20,87 @@ def run_engine(pipe: Connection):
 
     while running:
         while pipe.poll():
-            msg = pipe.recv()
+            try:
+                msg = pipe.recv()
 
-            if msg["type"] == "STOP":
-                running = False
-                break
+                if msg["type"] == "STOP":
+                    running = False
+                    break
 
-            elif msg["type"] == "NOTE":
-                note, channel, on = msg["data"]
-                organ.play(NoteSignal(note, channel, on))
+                elif msg["type"] == "NOTE":
+                    note, channel, on = msg["data"]
+                    organ.play(NoteSignal(note, channel, on))
 
-            elif msg["type"] == "SET_SAMPLES":
-                organ.set_samples_active(msg["data"])
+                elif msg["type"] == "SET_SAMPLES":
+                    organ.set_samples_active(msg["data"])
 
-            elif msg["type"] == "SET_SYNTH":
-                organ.set_synth_active(msg["data"])
+                elif msg["type"] == "SET_SYNTH":
+                    organ.set_synth_active(msg["data"])
 
-            elif msg["type"] == "SET_MODEL":
-                organ.set_model_active(msg["data"])
+                elif msg["type"] == "SET_MODEL":
+                    organ.set_model_active(msg["data"])
 
-            elif msg["type"] == "GET_SYNTH_ACTIVE":
-                pipe.send({
-                    "type": "GET_SYNTH_ACTIVE_RESULT",
-                    "id": msg["id"],
-                    "value": organ.get_synth_active()
-                })
+                elif msg["type"] == "START_RECORDINGS":
+                    organ.start_recordings()
 
-            elif msg["type"] == "GET_SAMPLES_ACTIVE":
-                pipe.send({
-                    "type": "GET_SAMPLES_ACTIVE_RESULT",
-                    "id": msg["id"],
-                    "value": organ.get_samples_active()
-                })
+                elif msg["type"] == "STOP_RECORDINGS":
+                    organ.stop_recordings()
 
-            elif msg["type"] == "GET_MODEL_ACTIVE":
-                pipe.send({
-                    "type": "GET_MODEL_ACTIVE_RESULT",
-                    "id": msg["id"],
-                    "value": organ.get_model_active()
-                })
+                elif msg["type"] == "SAVE_RECORDINGS":
+                    organ.save_recordings()
 
-            elif msg["type"] == "SET_VOICE":
-                voiceId = msg["data"][0]
-                value = msg["data"][1]
-                res:bool = organ.set_voice_active(voiceId, value)
+                elif msg["type"] == "GET_SYNTH_ACTIVE":
+                    pipe.send({
+                        "type": "GET_SYNTH_ACTIVE_RESULT",
+                        "id": msg["id"],
+                        "value": organ.get_synth_active()
+                    })
 
-                pipe.send({
-                    "type": "SET_VOICE_RESULT",
-                    "data": (voiceId, res)
-                })
+                elif msg["type"] == "GET_SAMPLES_ACTIVE":
+                    pipe.send({
+                        "type": "GET_SAMPLES_ACTIVE_RESULT",
+                        "id": msg["id"],
+                        "value": organ.get_samples_active()
+                    })
 
-            elif msg['type'] == 'GET_DEVICE_NAME':
-                pipe.send({
-                    "type": "GET_DEVICE_NAME_RESULT",
-                    "value": organ.get_midi_device_name()
-                })
+                elif msg["type"] == "GET_MODEL_ACTIVE":
+                    pipe.send({
+                        "type": "GET_MODEL_ACTIVE_RESULT",
+                        "id": msg["id"],
+                        "value": organ.get_model_active()
+                    })
 
-            elif msg['type'] == 'GET_VOICES_NAMES':
-                pipe.send({
-                    "type": "GET_VOICES_NAMES_RESULT",
-                    "value": organ.get_voices_names()
-                })
+                elif msg["type"] == "SET_VOICE":
+                    voiceId = msg["data"][0]
+                    value = msg["data"][1]
+                    res:bool = organ.set_voice_active(voiceId, value)
+
+                    pipe.send({
+                        "type": "SET_VOICE_RESULT",
+                        "data": (voiceId, res)
+                    })
+
+                elif msg['type'] == 'GET_DEVICE_NAME':
+                    pipe.send({
+                        "type": "GET_DEVICE_NAME_RESULT",
+                        "value": organ.get_midi_device_name()
+                    })
+
+                elif msg['type'] == 'GET_VOICES_NAMES':
+                    pipe.send({
+                        "type": "GET_VOICES_NAMES_RESULT",
+                        "value": organ.get_voices_names()
+                    })
+            except Exception as e:
+                print(f"Error processing message: {e}")
         
-        s:NoteSignal = organ.get_signal()
+        try:
+            s:NoteSignal = organ.get_signal()
 
-        if s != EMPTY_NOTE_SIGNAL:
-            organ.play(s)
+            if s != EMPTY_NOTE_SIGNAL:
+                organ.play(s)
+        except Exception as e:
+            print(f"Error processing signal: {e}")
 
 class EngineClient:
     def __init__(self):

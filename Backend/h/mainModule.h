@@ -9,6 +9,7 @@
 #include "voices.h"
 #include "metrices.h"
 #include "testModule.h"
+#include "paths.h"
 
 class mainModule {
 public:
@@ -46,7 +47,9 @@ public:
 	void unloadSynthModule() { this->unloadModule(this->synth); }
 	void loadModelModule() { this->loadModule(this->model); }
 	void unloadModelModule() { this->unloadModule(this->model); }
-
+	
+	void startRecordings();
+	void stopRecordings();
 	void saveRecordings();
 	void init();
 

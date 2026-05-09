@@ -10,7 +10,7 @@ class TestWorker(QObject):
     finished = Signal()
     progress = Signal(dict)
 
-    def __init__(self, notes, voices, duration, send_midi, get_stats, set_voice_active, run_metric):
+    def __init__(self, notes, voices, duration, send_midi, get_stats, set_voice_active, run_metric, start_recordings, stop_recordings, save_recordings):
         super().__init__()
         self.notes = notes
         self.voices = voices
@@ -20,6 +20,9 @@ class TestWorker(QObject):
         self.get_stats = get_stats
         self.set_voice_active = set_voice_active
         self.run_metric = run_metric
+        self.start_recordings = start_recordings
+        self.stop_recordings = stop_recordings
+        self.save_recordings = save_recordings
 
         self.running = True
 
@@ -42,6 +45,7 @@ class TestWorker(QObject):
                     noteOn = note_on(note)
                     noteOff = note_off(note)
 
+                    self.start_recordings()
                     self.send_midi(noteOn)
 
                     start_time = time.time()
@@ -59,17 +63,19 @@ class TestWorker(QObject):
                         next_tick += interval
                         time.sleep(max(0, next_tick - time.time()))
 
-                    self.send_midi(noteOff)
+                    self.send_midi(noteOff)                    
+                    self.stop_recordings()
+                    self.save_recordings()
 
-                    print('a')
+                    print("Sleep...")
+                    time.sleep(0.5)
+                    print("Resume")
 
                     try:
                         current["realism"] = self.run_metric(ref=REF, synth=SYNTH, model=MODEL)
                     except Exception as e:
                         current["realism"] = None
-                        print("METRIC ERROR:", str(e))
-
-                    print('b')
+                        print("METRIC ERROR:", str(e), e.args)
 
                     self.progress.emit(current)
 
@@ -77,7 +83,7 @@ class TestWorker(QObject):
 
             self.finished.emit()
         except Exception as e:
-            print("WORKER ERROR:", str(e))
+            print("WORKER ERROR:", str(e), e.args)
 
     def stop(self):
         print("WORKER STOPPED")
