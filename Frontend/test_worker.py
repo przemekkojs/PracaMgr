@@ -67,9 +67,7 @@ class TestWorker(QObject):
                     self.stop_recordings()
                     self.save_recordings()
 
-                    print("Sleep...")
                     time.sleep(0.5)
-                    print("Resume")
 
                     try:
                         current["realism"] = self.run_metric(ref=REF, synth=SYNTH, model=MODEL)

@@ -17,7 +17,7 @@
 const int LOWEST_NOTE = 48;
 const int NUMBER_OF_NOTES = 24;
 
-enum voiceType { FLUTE, STRING, PRINCIPAL, REED };
+enum voiceType { FLUTE, STRING, PRINCIPAL, REED, FLUTE_M, STRING_M, PRINCIPAL_M, REED_M };
 
 struct synthVoiceParams {
     float baseFrequency;
@@ -98,6 +98,7 @@ struct synthVoiceParams {
             case 'F': return voiceType::FLUTE;
             case 'S': return voiceType::STRING;
             case 'R': return voiceType::REED;
+
             default: throw std::exception("Invalid voice type");
         }
     }

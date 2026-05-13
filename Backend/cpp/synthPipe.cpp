@@ -256,3 +256,60 @@ float reedPipe::processFeedback(float flow, float pipeOut) {
 
     return lowpass(input);
 }
+
+
+
+float flutePipeModel::nonlinear(float x, float env) {
+    float drive = 1.0f + env * 3.0f;
+    float y = x * drive;
+
+    return std::tanh(y);
+}
+
+float flutePipeModel::processExcitation(float jet, float env) {
+    float x = jetLowpass(jet);
+
+    x = std::clamp(x, -1.0f, 1.0f);
+    return nonlinear(x, env);
+}
+
+
+
+float stringPipeModel::nonlinear(float x, float env) {
+    float drive = 1.0f + env * 3.0f;
+    float y = x * drive;
+
+    return std::tanh(y);
+}
+
+float stringPipeModel::processExcitation(float jet, float env) {
+    float x = jetLowpass(jet);
+
+    x = std::clamp(x, -1.0f, 1.0f);
+    return nonlinear(x, env);
+}
+
+
+
+float principalPipeModel::nonlinear(float x, float env) {
+    float drive = 1.0f + env * 3.0f;
+    float y = x * drive;
+
+    return std::tanh(y);
+}
+
+float principalPipeModel::processExcitation(float jet, float env) {
+    float x = jetLowpass(jet);
+
+    x = std::clamp(x, -1.0f, 1.0f);
+    return nonlinear(x, env);
+}
+
+
+
+float reedPipeModel::nonlinear(float x, float env) {
+    float drive = 1.0f + env * 3.0f;
+    float y = x * drive;
+
+    return std::tanh(y);
+}

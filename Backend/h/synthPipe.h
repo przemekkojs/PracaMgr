@@ -35,7 +35,7 @@ public:
 	float lossFilter(float x);
 	float lowpass(float x);
 	float jetLowpass(float x);
-	float nonlinear(float x, float env);
+	virtual float nonlinear(float x, float env);
 	float allpass(float x);
 
 	float pinkNoise();
@@ -130,12 +130,18 @@ class flutePipeModel : public synthPipe {
 public:
 	flutePipeModel() : synthPipe() {}
 
+	float nonlinear(float x, float env) override;
+	float processExcitation(float jet, float env) override;
+
 private:
 };
 
 class stringPipeModel : public synthPipe {
 public:
 	stringPipeModel() : synthPipe() {}
+
+	float nonlinear(float x, float env) override;
+	float processExcitation(float jet, float env) override;
 
 private:
 };
@@ -144,12 +150,17 @@ class principalPipeModel : public synthPipe {
 public:
 	principalPipeModel() : synthPipe() {}
 
+	float nonlinear(float x, float env) override;
+	float processExcitation(float jet, float env) override;
+
 private:
 };
 
-class reedPipeModel : public synthPipe {
+class reedPipeModel : public reedPipe {
 public:
-	reedPipeModel() : synthPipe() {}
+	reedPipeModel() : reedPipe() {}
+
+	float nonlinear(float x, float env) override;
 
 private:
 };

@@ -10,7 +10,7 @@
 
 class synthModule : public module {
 public:
-	synthModule(std::shared_ptr<voices> voiceManager);
+	synthModule(std::shared_ptr<voices> voiceManager, bool isModel=false);
 
 	void play(const noteSignal& signal) override;
 	void processSample(float& outL, float& outR) override;
@@ -19,4 +19,5 @@ public:
 
 private:
 	std::vector<synthVoice> allVoices;
+	bool isModel = false;
 };

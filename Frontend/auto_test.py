@@ -4,11 +4,9 @@ import datetime
 
 from pathlib import Path
 from optuna import Trial
-
 import optuna
 
-import visqolpy.visqol_py as visqol_py
-from metrices import lsd
+from metrices import lsd, mcff, sc
 
 TEST_PARAMS_PATH = Path("../Backend/local/test/temp.json")
 VOICES_PATH = Path("../Backend/local/samples")
@@ -66,8 +64,31 @@ class auto_test:
             })
 
         return params
+    
+    def choose_best_from_pareto(self, pareto_trials):
+        values = [t.values for t in pareto_trials]
 
-    def objective(self, trial) -> float:
+        mins = [min(v[i] for v in values) for i in range(3)]
+        maxs = [max(v[i] for v in values) for i in range(3)]
+
+        def normalized_score(trial):
+            score = 0.0
+
+            for i, value in enumerate(trial.values):
+                denom = maxs[i] - mins[i]
+
+                if denom == 0:
+                    norm = 0.0
+                else:
+                    norm = (value - mins[i]) / denom
+
+                score += norm
+
+            return score / 3
+
+        return min(pareto_trials, key=normalized_score)
+
+    def objective(self, trial) -> tuple[float, float, float]:
         params = self.write_test_params(trial)
 
         with open(TEST_PARAMS_PATH, "w") as f:
@@ -75,24 +96,33 @@ class auto_test:
 
         self.organ.make_test_synth_sample()
         self.organ.make_test_model_sample()
-        score:tuple[float, float, float] = lsd()
+        score_lsd:tuple[float, float, float] = lsd()
+        score_mcff:tuple[float, float, float] = mcff()
+        score_sc:tuple[float, float, float] = sc()
 
-        return score[self.obj_index]
+        return (score_lsd[self.obj_index], score_mcff[self.obj_index], score_sc[self.obj_index])
 
-    def run(self, n_trials:int=100) -> tuple[dict[str, float], float]:
-        study = optuna.create_study(direction="minimize")
+    def run(self, n_trials: int = 100):
+        study = optuna.create_study(
+            directions=["minimize", "minimize", "minimize"]
+        )
 
         study.optimize(
             self.objective,
             n_trials=n_trials,
             n_jobs=1,
-            show_progress_bar=True
+            show_progress_bar=False
         )
 
-        print("Best score:", study.best_value)
-        print("Best params:", study.best_params)
+        pareto_trials = study.best_trials
 
-        return (study.best_params, study.best_value)
+        best_trial = self.choose_best_from_pareto(pareto_trials)
+
+        print("Selected trial:", best_trial.number)
+        print("Selected values:", best_trial.values)
+        print("Selected params:", best_trial.params)
+
+        return best_trial.params, best_trial.values
 
 if __name__ == "__main__":
     print("voice id: ", end="")
@@ -112,4 +142,3 @@ if __name__ == "__main__":
 
     with open(path, 'w') as file:
         json.dump(out, fp=file)
-

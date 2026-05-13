@@ -6,6 +6,14 @@ SYNTH:str = "../Backend/local/test/synth.wav"
 MODEL:str = "../Backend/local/test/model.wav"
 
 def lsd(ref:str=REF, synth:str=SYNTH, model:str=MODEL) -> tuple[float, float, float]:
+    '''
+    ### params
+    - ref: reference sample path
+    - synth: synth sample path
+    - model: model sample path
+    ### returns    
+    (ref-to-synth, ref-to-model, synth-to-model)
+    '''
     y1, _ = librosa.load(ref, sr=None, mono=True)
     y2, _ = librosa.load(synth, sr=None, mono=True)
     y3, _ = librosa.load(model, sr=None, mono=True)
@@ -38,3 +46,9 @@ def lsd(ref:str=REF, synth:str=SYNTH, model:str=MODEL) -> tuple[float, float, fl
     lsd_23 = np.mean(frame_lsd_23)
 
     return float(lsd_12), float(lsd_13), float(lsd_23)
+
+def sc(ref:str=REF, synth:str=SYNTH, model:str=MODEL) -> tuple[float, float, float]:
+    return [0.0, 0.0, 0.0]
+
+def mcff(ref:str=REF, synth:str=SYNTH, model:str=MODEL) -> tuple[float, float, float]:
+    return [0.0, 0.0, 0.0]

@@ -16,7 +16,7 @@ public:
 	synthVoice(synthVoice&&) = default;
 	synthVoice& operator=(synthVoice&&) = default;
 
-	void load(const synthVoiceParams& params, voiceType vT);
+	void load(const synthVoiceParams& params, voiceType vT, bool isModel=false);
 	void noteOn(int note);
 	void noteOff(int note);
 	float process();

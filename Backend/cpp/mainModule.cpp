@@ -2,7 +2,7 @@
 
 #include <iostream>
 
-mainModule::mainModule() : voiceManager(std::make_shared<voices>()), samples(voiceManager), synth(voiceManager), model(voiceManager), buffer() {
+mainModule::mainModule() : voiceManager(std::make_shared<voices>()), samples(voiceManager), synth(voiceManager, false), model(voiceManager, true), buffer() {
 	unsigned int ports = midiIn.getPortCount();
 
 	if (ports == 0)

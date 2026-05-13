@@ -17,41 +17,78 @@ synthPipeParams synthVoice::pipeParams(int note) const {
     return p;
 }
 
-void synthVoice::load(const synthVoiceParams& params, voiceType vT) {
+void synthVoice::load(const synthVoiceParams& params, voiceType vT, bool isModel) {
     this->pipes.clear();
     this->params = params;
 
     for (int note = 0; note < 127; note++) {
         switch (vT) {
             case FLUTE: {
-                std::unique_ptr<flutePipe> p = std::make_unique<flutePipe>();
-                synthPipeParams pParams = this->pipeParams(note);
-                p->load(pParams);
-                this->pipes.push_back(std::move(p));
+                if (isModel) {
+                    std::unique_ptr<flutePipeModel> p = std::make_unique<flutePipeModel>();
+                    synthPipeParams pParams = this->pipeParams(note);
+                    p->load(pParams);
+                    this->pipes.push_back(std::move(p));
+                }
+                else {
+                    std::unique_ptr<flutePipe> p = std::make_unique<flutePipe>();
+                    synthPipeParams pParams = this->pipeParams(note);
+                    p->load(pParams);
+                    this->pipes.push_back(std::move(p));
+                }
+                
+                
                 break;
             }
-                
+
             case STRING: {
-                std::unique_ptr<stringPipe> p = std::make_unique<stringPipe>();
-                synthPipeParams pParams = this->pipeParams(note);
-                p->load(pParams);
-                this->pipes.push_back(std::move(p));
+                if (isModel) {
+                    std::unique_ptr<stringPipeModel> p = std::make_unique<stringPipeModel>();
+                    synthPipeParams pParams = this->pipeParams(note);
+                    p->load(pParams);
+                    this->pipes.push_back(std::move(p));
+                }
+                else {
+                    std::unique_ptr<stringPipe> p = std::make_unique<stringPipe>();
+                    synthPipeParams pParams = this->pipeParams(note);
+                    p->load(pParams);
+                    this->pipes.push_back(std::move(p));
+                }
+                
                 break;
             }
 
             case PRINCIPAL: {
-                std::unique_ptr<principalPipe> p = std::make_unique<principalPipe>();
-                synthPipeParams pParams = this->pipeParams(note);
-                p->load(pParams);
-                this->pipes.push_back(std::move(p));
+                if (isModel) {
+                    std::unique_ptr<principalPipeModel> p = std::make_unique<principalPipeModel>();
+                    synthPipeParams pParams = this->pipeParams(note);
+                    p->load(pParams);
+                    this->pipes.push_back(std::move(p));
+                }
+                else {
+                    std::unique_ptr<principalPipe> p = std::make_unique<principalPipe>();
+                    synthPipeParams pParams = this->pipeParams(note);
+                    p->load(pParams);
+                    this->pipes.push_back(std::move(p));
+                }
+                
                 break;
             }
 
             case REED: {
-                std::unique_ptr<reedPipe> p = std::make_unique<reedPipe>();
-                synthPipeParams pParams = this->pipeParams(note);
-                p->load(pParams);
-                this->pipes.push_back(std::move(p));
+                if (isModel) {
+                    std::unique_ptr<reedPipeModel> p = std::make_unique<reedPipeModel>();
+                    synthPipeParams pParams = this->pipeParams(note);
+                    p->load(pParams);
+                    this->pipes.push_back(std::move(p));
+                }
+                else {
+                    std::unique_ptr<reedPipe> p = std::make_unique<reedPipe>();
+                    synthPipeParams pParams = this->pipeParams(note);
+                    p->load(pParams);
+                    this->pipes.push_back(std::move(p));
+                }
+                
                 break;
             }
         }        

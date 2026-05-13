@@ -1,6 +1,6 @@
 #include "../h/synthModule.h"
 
-synthModule::synthModule(std::shared_ptr<voices> voiceManager) : module(std::move(voiceManager)), allVoices() { }
+synthModule::synthModule(std::shared_ptr<voices> voiceManager, bool isModel) : module(std::move(voiceManager)), allVoices(), isModel(isModel) { }
 
 void synthModule::play(const noteSignal& signal) {
     std::vector<voice> activeVoices = this->voiceManager->getActiveVoices();
@@ -31,7 +31,7 @@ void synthModule::load() {
         synthVoice sV;
         voiceType vT = v.getVoiceType();
 
-        sV.load(params, vT);
+        sV.load(params, vT, this->isModel);
         this->allVoices.push_back(std::move(sV));
     }
 }
