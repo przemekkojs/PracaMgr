@@ -4,16 +4,16 @@
     "name": "Prinzipal 8",
     "type": "P",
     "params": {
-      "baseFrequency": 440.0,
-      "reflection": 0.45,
-      "excitationGain": 0.45,
-      "noiseGain" :  0.01,
-      "jetLength": 0.48,
-      "jetLowpassCoeff": 0.3,
-      "lowpassCoeff": 0.6,
-      "nonlinearCoeff": 0.8,
-      "lossFilterCoeff": 0.15,
-      "loopFeedbackGain": 0.8
+      "reflection": 0.8530000000000001,
+      "excitationGain": 0.278,
+      "noiseGain": 0.013000000000000001,
+      "jetGain": 0.88,
+      "jetLength": 0.29500000000000004,
+      "loopFeedbackGain": 0.7889999999999999,
+      "jetLowpassCoeff": 0.51,
+      "lowpassCoeff": 0.9159999999999999,
+      "nonlinearCoeff": 1.0510000000000002,
+      "lossFilterCoeff": 0.632
     }
   },
   {
@@ -50,87 +50,6 @@
   },
   {
     "id": 4,
-    "name": "Flöte 8",
-    "type": "F",
-    "params": {
-      "baseFrequency": 440.0,
-      "reflection": 0.3,
-      "excitationGain": 0.5,
-      "jetLength": 0.45,
-      "jetLowpassCoeff": 0.5,
-      "lowpassCoeff": 0.7,
-      "nonlinearCoeff": 0.5,
-      "lossFilterCoeff": 0.2,
-      "loopFeedbackGain": 0.8
-    }
-  },
-  {
-    "id": 5,
-    "name": "Salicional 8",
-    "type": "S",
-    "params": {
-      "baseFrequency": 440.0,
-      "reflection": 0.48,
-      "excitationGain": 0.38,
-      "jetLength": 0.4,
-      "jetLowpassCoeff": 0.2,
-      "lowpassCoeff": 0.45,
-      "nonlinearCoeff": 0.95,
-      "lossFilterCoeff": 0.1,
-      "loopFeedbackGain": 0.88
-    }
-  },
-  {
-    "id": 6,
-    "name": "hard-to-tell",
-    "type": "F",
-      "params": {
-      "reflection": 0.9528392252721413,
-      "excitationGain": 0.7853208478900804,
-      "noiseGain": 0.6189347845694186,
-      "jetLength": 0.6240506910627225,
-      "loopFeedbackGain": 0.9994998557472865,
-      "jetLowpassCoeff": 0.113578772062076,
-      "lowpassCoeff": 0.4961161358296736,
-      "nonlinearCoeff": 0.2958209210724003,
-      "lossFilterCoeff": 0.9227646189237576
-    }
-  },
-  {
-    "id": 7,
-    "name": "hard-to-tell-2",
-    "type": "P",
-      "params": {
-        "reflection": 0.03257347833282587,
-        "excitationGain": 0.6190552192981061,
-        "noiseGain": 0.17262173442811887,
-        "jetLength": 0.7398833860960466,
-        "loopFeedbackGain": 0.9681392964900433,
-        "jetLowpassCoeff": 0.49819161071562224,
-        "lowpassCoeff": 0.9999996092261756,
-        "nonlinearCoeff": 0.14470559301032962,
-        "lossFilterCoeff": 0.580147207799971
-    }
-  },
-  {
-    "id": 8,
-    "name": "hard-to-tell-3",
-    "type": "S",
-    "params": {
-      "reflection": 0.427,
-      "excitationGain": 0.354,
-      "noiseGain": 0.294,
-      "jetGain": 0.254,
-      "jetLength": 0.658,
-      "loopFeedbackGain": 0.943,
-      "jetLowpassCoeff": 0.045,
-      "lowpassCoeff": 0.922,
-      "nonlinearCoeff": 0.56,
-      "lossFilterCoeff": 0.089
-    }
-  },
-  {
-    "id": 9,
     "name": "Trompete 8",
     "type": "R",
     "params": {
@@ -144,40 +63,6 @@
       "nonlinearCoeff": 0.8,
       "lossFilterCoeff": 0.15,
       "loopFeedbackGain": 0.8
-    }
-  },
-  {
-    "id": 10,
-    "name": "Principal 8",
-    "type": "P",
-    "params": {
-        "reflection": 0.914,
-        "excitationGain": 0.185,
-        "noiseGain": 0.033,
-        "jetGain": 0.563,
-        "jetLength": 0.722,
-        "loopFeedbackGain": 0.968,
-        "jetLowpassCoeff": 0.46,
-        "lowpassCoeff": 0.937,
-        "nonlinearCoeff": 1.051,
-        "lossFilterCoeff": 0.46
-    }
-  },
-  {
-    "id": 11,
-    "name": "Principal 8",
-    "type": "P",
-    "params": {
-        "reflection": 0.8210000000000001,
-        "excitationGain": 0.8079999999999999,
-        "noiseGain": 0.09,
-        "jetGain": 0.43600000000000005,
-        "jetLength": 0.28300000000000003,
-        "loopFeedbackGain": 0.816,
-        "jetLowpassCoeff": 0.634,
-        "lowpassCoeff": 0.8819999999999999,
-        "nonlinearCoeff": 0.598,
-        "lossFilterCoeff": 0.328
     }
   }
 ]

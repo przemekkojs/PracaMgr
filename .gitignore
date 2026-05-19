@@ -13,5 +13,6 @@ Frontend/visqol-3.3.3/
 Frontend/visqolpy/
 
 Experiments/Results/*.json
-
 Experiments/Reports/*
+
+Backend/local/test/temp.json

@@ -6,7 +6,7 @@ from pathlib import Path
 from optuna import Trial
 import optuna
 
-from metrices import lsd, mcff, sc
+from metrices import lsd, mfcc, sc
 
 TEST_PARAMS_PATH = Path("../Backend/local/test/temp.json")
 VOICES_PATH = Path("../Backend/local/samples")
@@ -97,10 +97,10 @@ class auto_test:
         self.organ.make_test_synth_sample()
         self.organ.make_test_model_sample()
         score_lsd:tuple[float, float, float] = lsd()
-        score_mcff:tuple[float, float, float] = mcff()
+        score_mfcc:tuple[float, float, float] = mfcc()
         score_sc:tuple[float, float, float] = sc()
 
-        return (score_lsd[self.obj_index], score_mcff[self.obj_index], score_sc[self.obj_index])
+        return (score_lsd[self.obj_index], score_mfcc[self.obj_index], score_sc[self.obj_index])
 
     def run(self, n_trials: int = 100):
         study = optuna.create_study(
@@ -125,13 +125,19 @@ class auto_test:
         return best_trial.params, best_trial.values
 
 if __name__ == "__main__":
+    print("0: Prinzipal 8'\n1: Holzgedackt 8'\n2: Gambe 8'\n3: Trompete 8'")
     print("voice id: ", end="")
     v_id:int = int(input())
 
+    print("1: P\n2: F\n3: S\n4: R\n5: Pm\n6: Fm\n7: Sm\n8: Rm")
     print("voice type: ", end="")
     v_type:int = int(input())
 
-    at:auto_test = auto_test(v_id, v_type)
+    print("0: Samples-Synth\n1: Samples-Model\n2: Synth-Model")
+    print("objective: ", end="")
+    obj_index:int = int(input())
+
+    at:auto_test = auto_test(v_id, v_type, obj_index)
     best_params, best_value = at.run(100)
     path:str = f".\\output\\result-{v_id}-{datetime.datetime.now().strftime("%d-%m-%Y-%H-%M-%S")}.json"
 
