@@ -29,4 +29,6 @@ public:
 private:
 	std::vector<std::unique_ptr<synthPipe>> pipes;
 	synthVoiceParams params;
+
+	int notesActiveCounter = 0;
 };

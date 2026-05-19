@@ -21,7 +21,7 @@ void synthVoice::load(const synthVoiceParams& params, voiceType vT, bool isModel
     this->pipes.clear();
     this->params = params;
 
-    for (int note = 0; note < 127; note++) {
+    for (int note = BOTTOM_NOTE; note < TOP_NOTE; note++) {
         switch (vT) {
             case FLUTE: {
                 if (isModel) {
@@ -96,19 +96,25 @@ void synthVoice::load(const synthVoiceParams& params, voiceType vT, bool isModel
 }
 
 void synthVoice::noteOn(int note) {
-    this->pipes[note]->noteOn();
+    this->pipes[note - BOTTOM_NOTE]->noteOn();
+
+    this->notesActiveCounter += note;
 }
 
 void synthVoice::noteOff(int note) {
-    this->pipes[note]->noteOff();
+    this->pipes[note - BOTTOM_NOTE]->noteOff();
+
+    this->notesActiveCounter -= note;
 }
 
 float synthVoice::process() {
     float out = 0.0f;
 
-    for (auto& pipe : this->pipes) {
-        out += pipe->process();
-    }
+    if (this->notesActiveCounter != 0) {
+        for (auto& pipe : this->pipes) {
+            out += pipe->process();
+        }
+    }    
 
     return out;
 }

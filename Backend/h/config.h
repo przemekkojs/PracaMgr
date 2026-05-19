@@ -5,3 +5,6 @@ static constexpr short BIT_DEPTH = 32;
 static constexpr short IEEE_FLOAT = 3;
 static constexpr short OUT_CHANNELS = 1;
 static constexpr short STEREO_CHANNELS = 2;
+
+static constexpr short BOTTOM_NOTE = 36;
+static constexpr short TOP_NOTE = 96;
