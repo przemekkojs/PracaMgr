@@ -1,0 +1,10 @@
+{
+	"duration": 5,
+	"name": "Simple",
+	"description": "Simple",
+	"notes": [ 96 ],
+	"synth": false,
+	"model": true,
+	"samples": false,
+	"voices": [1]
+}

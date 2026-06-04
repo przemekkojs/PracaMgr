@@ -37,6 +37,8 @@ class TestWorker(QObject):
                 
                 self.set_voice_active(voice, True, True)
 
+                time.sleep(0.5)
+
                 for note in self.notes:
                     if not self.running:
                         break
@@ -76,9 +78,11 @@ class TestWorker(QObject):
                         print("METRIC ERROR:", str(e), e.args)
 
                     self.progress.emit(current)
+                    print(f"VOICE {voice} NOTE {note} FINISHED")
 
                 self.set_voice_active(voice, False, True)
 
+            print("WORKER FINISHED")
             self.finished.emit()
         except Exception as e:
             print("WORKER ERROR:", str(e), e.args)

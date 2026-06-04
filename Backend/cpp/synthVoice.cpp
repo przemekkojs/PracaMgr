@@ -21,7 +21,7 @@ void synthVoice::load(const synthVoiceParams& params, voiceType vT, bool isModel
     this->pipes.clear();
     this->params = params;
 
-    for (int note = BOTTOM_NOTE; note < TOP_NOTE; note++) {
+    for (int note = BOTTOM_NOTE; note <= TOP_NOTE; note++) {
         switch (vT) {
             case FLUTE: {
                 if (isModel) {

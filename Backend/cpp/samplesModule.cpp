@@ -40,7 +40,7 @@ void samplesModule::loadSamples() {
     ma_decoder_config config = ma_decoder_config_init(ma_format_f32, 0, 0);
 
     for (const auto& v : this->voiceManager->getVoices()) {
-        for (int note = BOTTOM_NOTE; note < TOP_NOTE; note++) {
+        for (int note = BOTTOM_NOTE; note <= TOP_NOTE; note++) {
             std::vector<std::string> paths = v.getSamplesPath(note);
 
             if (paths.size() != 3) continue;

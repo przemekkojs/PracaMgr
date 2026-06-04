@@ -46,14 +46,17 @@ class ui(QWidget):
     def init_ui(self):
         self.buttons_box:QHBoxLayout = QHBoxLayout()
         self.startTestButton:QPushButton = QPushButton("Start")
+        self.allTestsButton:QPushButton = QPushButton("Run all")
         self.stopTestButton:QPushButton = QPushButton("Stop")
         self.experimentDropdown: QComboBox = QComboBox()
         self.experimentDropdown.addItems(self.experiment_files)
         self.stopTestButton.setEnabled(False)
         self.buttons_box.addWidget(self.startTestButton)
+        self.buttons_box.addWidget(self.allTestsButton)
         self.buttons_box.addWidget(self.stopTestButton)
         self.buttons_box.addWidget(self.experimentDropdown)
         self.startTestButton.clicked.connect(self.startTest)
+        self.allTestsButton.clicked.connect(self.makeAllTests)
         self.stopTestButton.clicked.connect(self.stopTest)
 
         self.voicesBox:QVBoxLayout = QVBoxLayout()
@@ -180,18 +183,49 @@ class ui(QWidget):
 
         self.th.start()
 
-    def _on_worker_progress(self, current):
-        if "actions" in self.result_obj:
-            self.result_obj["actions"].append(current)
+    def makeAllTests(self):
+        if self.experimentDropdown.count() == 0:
+            return
+
+        self.all_tests_queue = list(range(self.experimentDropdown.count()))
+        self.allTestsButton.setEnabled(False)
+        self.startTestButton.setEnabled(False)
+
+        self._run_next_test()
+
+
+    def _run_next_test(self):
+        if not hasattr(self, "all_tests_queue") or len(self.all_tests_queue) == 0:
+            self.allTestsButton.setEnabled(True)
+            self.startTestButton.setEnabled(True)
+            return
+
+        index = self.all_tests_queue.pop(0)
+        self.experimentDropdown.setCurrentIndex(index)
+        self.startTest()
+
 
     def _on_worker_finished(self):
         self.stopTest()
+
+        if hasattr(self, "all_tests_queue") and len(self.all_tests_queue) > 0:
+            QTimer.singleShot(500, self._run_next_test)
+        elif hasattr(self, "all_tests_queue"):
+            del self.all_tests_queue
+            self.allTestsButton.setEnabled(True)
+            self.startTestButton.setEnabled(True)
+
+    def _on_worker_progress(self, current):
+        if "actions" in self.result_obj:
+            self.result_obj["actions"].append(current)
 
     def stopTest(self):
         if hasattr(self, "worker"):
             self.worker.stop()
 
-        self.startTestButton.setEnabled(True)
+        if not hasattr(self, "all_tests_queue"):
+            self.startTestButton.setEnabled(True)
+
         self.stopTestButton.setEnabled(False)
 
         self.modelActiveBox.cBox.setCheckable(True)
