@@ -1,0 +1,10 @@
+{
+	"duration": 5,
+	"name": "Tr-8-Model",
+	"description": "Trąbka 8 - model",
+	"notes": [ 36, 42, 48, 54, 60, 66, 72, 78, 84, 90, 96 ],
+	"synth": false,
+	"model": true,
+	"samples": false,
+	"voices": [8]
+}
