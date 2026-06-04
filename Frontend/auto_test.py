@@ -126,14 +126,14 @@ class auto_test:
 
 if __name__ == "__main__":
     all_params:list[tuple[str, (int | str)]] = [
-        (0, 1, 0, "Pr8-S-S"),
-        (0, 5, 1, "Pr8-S-M"),
-        (1, 2, 0, "Fl8-S-S"),
-        (0, 6, 1, "Fl8-S-M"),
-        (0, 3, 0, "Gb8-S-S"),
-        (0, 7, 1, "Gb8-S-M"),
-        (0, 4, 0, "Tr8-S-S"),
-        (0, 8, 1, "Tr8-S-M")
+        (0, 5, 0, "Pr8-S-S-Inv"),
+        (0, 1, 1, "Pr8-S-M-Inv"),
+        (1, 6, 0, "Fl8-S-S-Inv"),
+        (0, 2, 1, "Fl8-S-M-Inv"),
+        (0, 7, 0, "Gb8-S-S-Inv"),
+        (0, 3, 1, "Gb8-S-M-Inv"),
+        (0, 8, 0, "Tr8-S-S-Inv"),
+        (0, 4, 1, "Tr8-S-M-Inv")
     ]
 
     for param in all_params:
@@ -143,7 +143,7 @@ if __name__ == "__main__":
         file_name = param[3]
 
         at:auto_test = auto_test(v_id, v_type, obj_index)
-        best_params, best_value = at.run(10000)
+        best_params, best_value = at.run(1000)
         path:str = f".\\output\\{file_name}.json"
 
         out:dict = {

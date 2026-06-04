@@ -11,6 +11,7 @@ out/
 Frontend/output/*.json
 Frontend/visqol-3.3.3/
 Frontend/visqolpy/
+Frontend/signals/
 
 Experiments/Results/*.json
 Experiments/Reports/*
