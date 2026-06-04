@@ -1,85 +1,172 @@
 [
   {
     "id": 1,
-    "name": "Prinzipal 8",
+    "name": "Pr-8-S-S",
     "type": "P",
     "params": {
-      "reflection": 0.8530000000000001,
-      "excitationGain": 0.278,
-      "noiseGain": 0.013000000000000001,
-      "jetGain": 0.88,
-      "jetLength": 0.29500000000000004,
-      "loopFeedbackGain": 0.7889999999999999,
-      "jetLowpassCoeff": 0.51,
-      "lowpassCoeff": 0.9159999999999999,
-      "nonlinearCoeff": 1.0510000000000002,
-      "lossFilterCoeff": 0.632
+      "reflection": 0.879,
+      "excitationGain": 0.879,
+      "noiseGain": 0.031,
+      "jetGain": 0.857,
+      "jetLength": 0.357,
+      "loopFeedbackGain": 0.7649999999999999,
+      "jetLowpassCoeff": 0.336,
+      "lowpassCoeff": 0.879,
+      "nonlinearCoeff": 2.372,
+      "lossFilterCoeff": 0.518
     }
   },
   {
     "id": 2,
-    "name": "Holzgedackt 8",
-    "type": "F",
+    "name": "Pr-8-S-M",
+    "type": "P",
     "params": {
-      "baseFrequency": 440.0,
-      "reflection": 0.35,
-      "excitationGain": 0.55,
-      "jetLength": 0.5,
-      "jetLowpassCoeff": 0.7,
-      "lowpassCoeff": 0.85,
-      "nonlinearCoeff": 0.6,
-      "lossFilterCoeff": 0.4,
-      "loopFeedbackGain": 0.75
+      "reflection": 0.863,
+      "excitationGain": 0.972,
+      "noiseGain": 0.07,
+      "jetGain": 0.871,
+      "jetLength": 0.334,
+      "loopFeedbackGain": 0.8029999999999999,
+      "jetLowpassCoeff": 0.278,
+      "lowpassCoeff": 0.883,
+      "nonlinearCoeff": 2.601,
+      "lossFilterCoeff": 0.14800000000000002
     }
   },
   {
     "id": 3,
-    "name": "Gambe 8",
-    "type": "S",
+    "name": "Fl-8-S-S",
+    "type": "F",
     "params": {
-      "baseFrequency": 440.0,
-      "reflection": 0.5,
-      "excitationGain": 0.35,
-      "jetLength": 0.35,
-      "jetLowpassCoeff": 0.1,
-      "lowpassCoeff": 0.3,
-      "nonlinearCoeff": 1.1,
-      "lossFilterCoeff": 0.05,
-      "loopFeedbackGain": 0.92
+      "reflection": 0.878,
+      "excitationGain": 0.128,
+      "noiseGain": 0.094,
+      "jetGain": 0.83,
+      "jetLength": 0.29800000000000004,
+      "loopFeedbackGain": 0.862,
+      "jetLowpassCoeff": 0.6930000000000001,
+      "lowpassCoeff": 0.8899999999999999,
+      "nonlinearCoeff": 2.838,
+      "lossFilterCoeff": 0.755
     }
   },
   {
     "id": 4,
-    "name": "Trompete 8",
-    "type": "R",
+    "name": "Fl-8-S-M",
+    "type": "F",
     "params": {
-      "baseFrequency": 440.0,
-      "reflection": 0.45,
-      "excitationGain": 0.45,
-      "noiseGain": 0.01,
-      "jetLength": 0.48,
-      "jetLowpassCoeff": 0.3,
-      "lowpassCoeff": 0.6,
-      "nonlinearCoeff": 0.8,
-      "lossFilterCoeff": 0.15,
-      "loopFeedbackGain": 0.8
+      "reflection": 0.928,
+      "excitationGain": 0.12000000000000001,
+      "noiseGain": 0.013000000000000001,
+      "jetGain": 0.795,
+      "jetLength": 0.34099999999999997,
+      "loopFeedbackGain": 0.7769999999999999,
+      "jetLowpassCoeff": 0.7370000000000001,
+      "lowpassCoeff": 0.889,
+      "nonlinearCoeff": 2.86,
+      "lossFilterCoeff": 0.896
     }
   },
   {
     "id": 5,
-    "name": "Prinzipal 8",
-    "type": "P",
+    "name": "Gb-8-S-S",
+    "type": "S",
     "params": {
-        "reflection": 0.9830000000000001,
-        "excitationGain": 0.947,
-        "noiseGain": 0.073,
-        "jetGain": 0.547,
-        "jetLength": 0.354,
-        "loopFeedbackGain": 0.735,
-        "jetLowpassCoeff": 0.43400000000000005,
-        "lowpassCoeff": 0.899,
-        "nonlinearCoeff": 2.641,
-        "lossFilterCoeff": 0.524
+      "reflection": 0.8450000000000001,
+      "excitationGain": 0.714,
+      "noiseGain": 0.058,
+      "jetGain": 0.701,
+      "jetLength": 0.344,
+      "loopFeedbackGain": 0.7889999999999999,
+      "jetLowpassCoeff": 0.875,
+      "lowpassCoeff": 0.879,
+      "nonlinearCoeff": 2.9050000000000002,
+      "lossFilterCoeff": 0.674
     }
+  },
+  {
+    "id": 6,
+    "name": "Gb-8-S-M",
+    "type": "S",
+    "params": {
+      "reflection": 0.882,
+      "excitationGain": 0.646,
+      "noiseGain": 0.065,
+      "jetGain": 0.41900000000000004,
+      "jetLength": 0.252,
+      "loopFeedbackGain": 0.967,
+      "jetLowpassCoeff": 0.639,
+      "lowpassCoeff": 0.897,
+      "nonlinearCoeff": 2.937,
+      "lossFilterCoeff": 0.844
+    }
+  },
+  {
+    "id": 7,
+    "name": "Tr-8-S-S",
+    "type": "R",
+    "params": {
+      "breathBase": 0.28300000000000003,
+      "breathEnvAmount": 0.513,
+      "breathNoiseGain": 0.022,
+      "reedBias": 0.918,
+      "reedLeak": 0.007,
+      "reedHysteresis": 0.8360000000000001,
+      "reedNonlin": 1.936,
+      "reedNonlinEnv": 0.8250000000000001,
+      "reedGain": 2.966,
+      "buzzGain": 0.003,
+      "attackNoiseGain": 0.128,
+      "attackEnvThreshold": 0.15400000000000003,
+      "resonanceGain": 0.8320000000000001,
+      "feedbackNonlin": 3.5020000000000002,
+      "jetDelayOffset": 1.8940000000000001
+    }
+  },
+  {
+    "id": 8,
+    "name": "Tr-8-S-M",
+    "type": "R",
+    "params": {
+      "breathBase": 0.096,
+      "breathEnvAmount": 0.662,
+      "breathNoiseGain": 0.042,
+      "reedBias": 0.28300000000000003,
+      "reedLeak": 0.01,
+      "reedHysteresis": 0.864,
+      "reedNonlin": 7.014,
+      "reedNonlinEnv": 0.925,
+      "reedGain": 1.133,
+      "buzzGain": 0.018000000000000002,
+      "attackNoiseGain": 0.06,
+      "attackEnvThreshold": 0.098,
+      "resonanceGain": 0.36,
+      "feedbackNonlin": 3.609,
+      "jetDelayOffset": 2.084
+    }
+  },
+  {
+    "id": 9,
+    "name": "prinzipal-8",
+    "type": "P",
+    "params": {}
+  },
+  {
+    "id": 10,
+    "name": "holgedackt-8",
+    "type": "F",
+    "params": {}
+  },
+  {
+    "id": 11,
+    "name": "gambe-8",
+    "type": "S",
+    "params": {}
+  },
+  {
+    "id": 12,
+    "name": "trompete-8",
+    "type": "R",
+    "params": {}
   }
 ]

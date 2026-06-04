@@ -125,26 +125,34 @@ class auto_test:
         return best_trial.params, best_trial.values
 
 if __name__ == "__main__":
-    print("0: Prinzipal 8'\n1: Holzgedackt 8'\n2: Gambe 8'\n3: Trompete 8'")
-    print("voice id: ", end="")
-    v_id:int = int(input())
+    all_params:list[tuple[str, (int | str)]] = [
+        (0, 1, 0, "Pr8-S-S"),
+        (0, 5, 1, "Pr8-S-M"),
+        (1, 2, 0, "Fl8-S-S"),
+        (0, 6, 1, "Fl8-S-M"),
+        (0, 3, 0, "Gb8-S-S"),
+        (0, 7, 1, "Gb8-S-M"),
+        (0, 4, 0, "Tr8-S-S"),
+        (0, 8, 1, "Tr8-S-M")
+    ]
 
-    print("1: P\n2: F\n3: S\n4: R\n5: Pm\n6: Fm\n7: Sm\n8: Rm")
-    print("voice type: ", end="")
-    v_type:int = int(input())
+    for param in all_params:
+        v_id = param[0]
+        v_type = param[1]
+        obj_index = param[2]
+        file_name = param[3]
 
-    print("0: Samples-Synth\n1: Samples-Model\n2: Synth-Model")
-    print("objective: ", end="")
-    obj_index:int = int(input())
+        at:auto_test = auto_test(v_id, v_type, obj_index)
+        best_params, best_value = at.run(10000)
+        path:str = f".\\output\\{file_name}.json"
 
-    at:auto_test = auto_test(v_id, v_type, obj_index)
-    best_params, best_value = at.run(100)
-    path:str = f".\\output\\result-{v_id}-{datetime.datetime.now().strftime("%d-%m-%Y-%H-%M-%S")}.json"
+        out:dict = {
+            "score"  : best_value,
+            "params" : best_params
+        }
 
-    out:dict = {
-        "score"  : best_value,
-        "params" : best_params
-    }
+        with open(path, 'w') as file:
+            json.dump(out, fp=file)
 
-    with open(path, 'w') as file:
-        json.dump(out, fp=file)
+        del at
+

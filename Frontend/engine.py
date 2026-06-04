@@ -14,93 +14,114 @@ def note_off(note: int) -> NoteSignal:
     return NoteSignal(note, 0, False)
 
 def run_engine(pipe: Connection):
-    organ:MainModule = MainModule()
-    running:bool = True
-    organ.init()
+    organ: MainModule = MainModule()
+    running: bool = True
+    error_reported = False
 
-    while running:
-        while pipe.poll():
+    def report_once(msg: str, e: Exception):
+        nonlocal error_reported
+        if not error_reported:
+            print(f"{msg}: {type(e).__name__}: {e}", flush=True)
+            error_reported = True
+
+    try:
+        organ.init()
+
+        while running:
             try:
-                msg = pipe.recv()
+                while pipe.poll():
+                    msg = pipe.recv()
 
-                if msg["type"] == "STOP":
-                    running = False
-                    break
+                    if msg["type"] == "STOP":
+                        running = False
+                        break
 
-                elif msg["type"] == "NOTE":
-                    note, channel, on = msg["data"]
-                    organ.play(NoteSignal(note, channel, on))
+                    elif msg["type"] == "NOTE":
+                        note, channel, on = msg["data"]
+                        organ.play(NoteSignal(note, channel, on))
 
-                elif msg["type"] == "SET_SAMPLES":
-                    organ.set_samples_active(msg["data"])
+                    elif msg["type"] == "SET_SAMPLES":
+                        organ.set_samples_active(msg["data"])
 
-                elif msg["type"] == "SET_SYNTH":
-                    organ.set_synth_active(msg["data"])
+                    elif msg["type"] == "SET_SYNTH":
+                        organ.set_synth_active(msg["data"])
 
-                elif msg["type"] == "SET_MODEL":
-                    organ.set_model_active(msg["data"])
+                    elif msg["type"] == "SET_MODEL":
+                        organ.set_model_active(msg["data"])
 
-                elif msg["type"] == "START_RECORDINGS":
-                    organ.start_recordings()
+                    elif msg["type"] == "START_RECORDINGS":
+                        organ.start_recordings()
 
-                elif msg["type"] == "STOP_RECORDINGS":
-                    organ.stop_recordings()
+                    elif msg["type"] == "STOP_RECORDINGS":
+                        organ.stop_recordings()
 
-                elif msg["type"] == "SAVE_RECORDINGS":
-                    organ.save_recordings()
+                    elif msg["type"] == "SAVE_RECORDINGS":
+                        organ.save_recordings()
 
-                elif msg["type"] == "GET_SYNTH_ACTIVE":
-                    pipe.send({
-                        "type": "GET_SYNTH_ACTIVE_RESULT",
-                        "id": msg["id"],
-                        "value": organ.get_synth_active()
-                    })
+                    elif msg["type"] == "GET_SYNTH_ACTIVE":
+                        pipe.send({
+                            "type": "GET_SYNTH_ACTIVE_RESULT",
+                            "id": msg["id"],
+                            "value": organ.get_synth_active()
+                        })
 
-                elif msg["type"] == "GET_SAMPLES_ACTIVE":
-                    pipe.send({
-                        "type": "GET_SAMPLES_ACTIVE_RESULT",
-                        "id": msg["id"],
-                        "value": organ.get_samples_active()
-                    })
+                    elif msg["type"] == "GET_SAMPLES_ACTIVE":
+                        pipe.send({
+                            "type": "GET_SAMPLES_ACTIVE_RESULT",
+                            "id": msg["id"],
+                            "value": organ.get_samples_active()
+                        })
 
-                elif msg["type"] == "GET_MODEL_ACTIVE":
-                    pipe.send({
-                        "type": "GET_MODEL_ACTIVE_RESULT",
-                        "id": msg["id"],
-                        "value": organ.get_model_active()
-                    })
+                    elif msg["type"] == "GET_MODEL_ACTIVE":
+                        pipe.send({
+                            "type": "GET_MODEL_ACTIVE_RESULT",
+                            "id": msg["id"],
+                            "value": organ.get_model_active()
+                        })
 
-                elif msg["type"] == "SET_VOICE":
-                    voiceId = msg["data"][0]
-                    value = msg["data"][1]
-                    res:bool = organ.set_voice_active(voiceId, value)
+                    elif msg["type"] == "SET_VOICE":
+                        voiceId = msg["data"][0]
+                        value = msg["data"][1]
+                        res:bool = organ.set_voice_active(voiceId, value)
 
-                    pipe.send({
-                        "type": "SET_VOICE_RESULT",
-                        "data": (voiceId, res)
-                    })
+                        pipe.send({
+                            "type": "SET_VOICE_RESULT",
+                            "data": (voiceId, res)
+                        })
 
-                elif msg['type'] == 'GET_DEVICE_NAME':
-                    pipe.send({
-                        "type": "GET_DEVICE_NAME_RESULT",
-                        "value": organ.get_midi_device_name()
-                    })
+                    elif msg['type'] == 'GET_DEVICE_NAME':
+                        pipe.send({
+                            "type": "GET_DEVICE_NAME_RESULT",
+                            "value": organ.get_midi_device_name()
+                        })
 
-                elif msg['type'] == 'GET_VOICES_NAMES':
-                    pipe.send({
-                        "type": "GET_VOICES_NAMES_RESULT",
-                        "value": organ.get_voices_names()
-                    })
-            except Exception as e:
-                print(f"Error processing message: {e}")
+                    elif msg['type'] == 'GET_VOICES_NAMES':
+                        pipe.send({
+                            "type": "GET_VOICES_NAMES_RESULT",
+                            "value": organ.get_voices_names()
+                        })
         
-        try:
-            s:NoteSignal = organ.get_signal()
+    
+            except (BrokenPipeError, EOFError, OSError) as e:
+                report_once("Engine pipe connection lost", e)
+                break
 
-            if s != EMPTY_NOTE_SIGNAL:
-                organ.play(s)
-        except Exception as e:
-            print(f"Error processing signal: {e}")
+            try:
+                s:NoteSignal = organ.get_signal()
+
+                if s != EMPTY_NOTE_SIGNAL:
+                    organ.play(s)
+            except Exception as e:
+                print(f"Error processing signal: {e}")
+
+    except Exception as e:
+        report_once("Engine fatal error", e)
+
+    finally:
+        try:
+            pipe.close()
+        except Exception:
+            pass
 
 class EngineClient:
     def __init__(self):
@@ -112,7 +133,16 @@ class EngineClient:
         self.pending_requests = {}
 
     def send(self, msg):
-        self.parent_conn.send(msg)
+        if not self.process.is_alive():
+            print("Engine process is not alive")
+            return False
+
+        try:
+            self.parent_conn.send(msg)
+            return True
+        except (BrokenPipeError, EOFError, OSError) as e:
+            print(f"Cannot send message to engine: {type(e).__name__}: {e}")
+            return False
 
     def request(self, type_):
         self.request_id += 1
@@ -127,9 +157,18 @@ class EngineClient:
             messages.append(self.parent_conn.recv())
         return messages
 
+    
     def stop(self):
-        self.send({"type": "STOP"})
-        self.process.join()
+        try:
+            if self.process.is_alive():
+                self.send({"type": "STOP"})
+                self.process.join(timeout=2)
+
+                if self.process.is_alive():
+                    self.process.terminate()
+                    self.process.join()
+        finally:
+            self.parent_conn.close()
 
 class EngineMonitor:
     def __init__(self, pid):
